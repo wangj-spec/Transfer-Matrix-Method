@@ -50,14 +50,14 @@ n = np.array(n)
 k = np.array(k)
 
 # Converted C coefficients to nanometers squared.
-googled = list([1.03961212, 0.231792344, 1.01046945, 6.00069867e3, 2.00179144e4 , 1.03560653e8])
+S_coefficients = list([1.03961212, 0.231792344, 1.01046945, 6.00069867e3, 2.00179144e4 , 1.03560653e8])
 
 #popt, pcov = curve_fit(sellmeier, wavelength, n, p0 = [1,0,1,0,0,100]) # initial guess taken from internet
 
 # Trial wavelength range
 trial = np.arange(330, 2500, 0.2)
 interplovals = list(map(lambda x: linterpol(x, wavelength, n), trial))
-sellmeiervals = list(map(lambda x: sellmeier(x, *googled), trial))
+sellmeiervals = list(map(lambda x: sellmeier(x, *S_coefficients), trial))
 
 plt.figure()
 plt.plot(trial, interplovals)
@@ -89,4 +89,43 @@ plt.xlabel('Wavelength (nm)')
 plt.ylabel('refractive index')
 plt.plot(wavelength, k, 'x', label = 'imaginary values for BK7 glass')
 plt.grid()
+
+#%%
+# Gold data, wavelength is given in micrometers
+
+gold_data = np.loadtxt('RefractiveIndexINFO.csv', skiprows = 1, delimiter = ',', unpack = True)
+
+# Converting to nonmeters
+Au_wavelgth = gold_data[0] * 10 ** 3 
+
+
+def complx_n(lam, lam_data = Au_wavelgth, real_data = gold_data[1], img_data = gold_data[2]):
+    
+    if lam > lam_data[-1] or lam < lam_data[0]:
+        raise Exception('Inputted value is out of range provided in the data')
+        
+    n_real = linterpol(lam, lam_data, real_data)
+    n_img = linterpol(lam, lam_data, img_data)
+    n = complex(n_real, n_img)
+    
+    return n
+
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
