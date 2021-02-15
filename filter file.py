@@ -110,7 +110,31 @@ def complx_n(lam, lam_data = Au_wavelgth, real_data = gold_data[1], img_data = g
     
     return n
 
+#%%
+def chifunction (k0, kx, polarisation, ncomplex1, ncomplex2):
+
+    n1 = np.real(ncomplex1)
+    n2 = np.real(ncomplex2)
+
+    kz1 = np.sqrt((n1*k0)**2 - kx**2)
+    kz2 = np.sqrt((n2*k0)**2 - kx**2)
+
+    if polarisation == "p":
+
+        alpha = (n2/n1)*np.sqrt(kz1/kz2)
+        chip = (alpha + 1/alpha)/2
+        chim = (alpha - 1/alpha)/2
+
+    elif polarisation == "s":
+
+        alpha = np.sqrt(kz2/kz1)
+        chip = (alpha + 1/alpha)/2
+        chim = (alpha - 1/alpha)/2
+
+    else:
+        raise Exception("That is not a supported polarisation of light")
     
+    return chip, chim # returns chi plus and chi minuts    
     
     
 
