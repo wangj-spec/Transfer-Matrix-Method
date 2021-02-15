@@ -136,7 +136,44 @@ def chifunction (k0, kx, polarisation, ncomplex1, ncomplex2):
     
     return chip, chim # returns chi plus and chi minuts    
     
+def TMM(wavelength, angle, polarisation, ns, ds):
+
+    if polarisation != 's' and polarisation != 'p':
+        raise Exception("That is not a supported polarisation of light")
+
+    k0 = 2*np.pi/wavelength
+    kx = k0*np.sin(angle)
+    M = [[1,0],[0,1]] # initialise general matrix
+    for i in range(len(ds)): # ds should be one item shorter than ns, the final ns should be for the substrate
+        
+        kz = np.sqrt((ns[i]*k0)**2 - kx**2)
+        
+        if i == 0:
+            n1 = 1 # air
+            n2 = ns[i] # the refractive index of the layer
+
+        else:
+            n1 = ns[i-1]
+            n2 = ns[i]
+
+        propagation = np.exp(np.complex(0,(kz*ds[i]))) # forward propagation
+        chip, chim = chifunction(k0, kx, n1, n2)
+        T_i = [[chip , chim],[chim, chip]]
+        P_i = [[propagation, 0],[0, np.conj(propagation)]] # complex conjugate for backward propagation
+        interstep = np.matmul(P_i, T_i)
+        M = np.matmul(interstep, M)
+
+    n1 = ns[-2]
+    n2 = ns[-1]
+
+    chip, chim = chifunction(k0, kx, n1, n2)
+    T_i = [[chip , chim],[chim, chip]] # interfacial for the substrate
+    M = np.matmul(T_i, M)
+
+    r = -(M[1][0]/M[1][1])
+    t = M[0][0] + M[0][1]*r
     
+    return r, t    
 
 
 
