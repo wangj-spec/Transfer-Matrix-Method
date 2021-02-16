@@ -145,9 +145,10 @@ def TMM(wavelength, angle, polarisation, ns, ds):
     kx = k0*np.sin(angle)
     M = [[1,0],[0,1]] # initialise general matrix
     for i in range(len(ds)): # ds should be one item shorter than ns, the final ns should be for the substrate
-        
-        kz = np.sqrt((ns[i]*k0)**2 - kx**2)
-        
+        n = np.real(ns[i])
+        k = np.imag(ns[i])
+        kz = np.sqrt((n*k0)**2 - kx**2)
+
         if i == 0:
             n1 = 1 # air
             n2 = ns[i] # the refractive index of the layer
@@ -156,8 +157,8 @@ def TMM(wavelength, angle, polarisation, ns, ds):
             n1 = ns[i-1]
             n2 = ns[i]
 
-        propagation = np.exp(np.complex(0,(kz*ds[i]))) # forward propagation
-        chip, chim = chifunction(k0, kx, n1, n2)
+        propagation = np.exp(complex(0,(kz*ds[i]))) # forward propagation
+        chip, chim = chifunction(k0, kx, polarisation, n1, n2)
         T_i = [[chip , chim],[chim, chip]]
         P_i = [[propagation, 0],[0, np.conj(propagation)]] # complex conjugate for backward propagation
         interstep = np.matmul(P_i, T_i)
@@ -166,15 +167,33 @@ def TMM(wavelength, angle, polarisation, ns, ds):
     n1 = ns[-2]
     n2 = ns[-1]
 
-    chip, chim = chifunction(k0, kx, n1, n2)
+    chip, chim = chifunction(k0, kx, polarisation, n1, n2)
     T_i = [[chip , chim],[chim, chip]] # interfacial for the substrate
     M = np.matmul(T_i, M)
 
     r = -(M[1][0]/M[1][1])
     t = M[0][0] + M[0][1]*r
-    
-    return r, t    
 
+    return r, t
+
+
+
+
+data2 = np.loadtxt("BK7.txt", skiprows = 1, unpack = True)
+data1 = np.loadtxt("MgF2.txt", skiprows = 1, unpack = True)
+
+incominglam = 500 # in nm
+d = 3 # for now
+        # d and incoming lam to be changed around for the minimisation
+incomingpol = "s" #not sure if it changes anything, but worth bearing in mind
+n1 = complx_n(incominglam, *data1)
+n2 = complx_n(incominglam, *data2)
+
+ns = [n1,n2]
+ds = [d]
+
+r , t = TMM(incominglam, 0, incomingpol, ns, ds )
+print(r, t)
 
 
 
