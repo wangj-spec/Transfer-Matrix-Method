@@ -1,14 +1,14 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
 """
 Created on Thu Feb 11 11:22:05 2021
-
 @author: leonardobossi1
 """
 
-import scipy as np
+import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.cm as cm
 
 def linterpol(wavelength, wavedata, indexdata):
 
@@ -68,7 +68,7 @@ residuals = []
 for i in range(len(trial)):
     residuals.append(interplovals[i] - sellmeiervals[i])
 
-print("The averaage residual is " + str(np.mean(residuals)))
+print("The average residual is " + str(np.mean(residuals)))
 
 plt.figure()
 plt.scatter(trial, residuals)
@@ -144,6 +144,7 @@ def TMM(wavelength, angle, polarisation, ns, ds):
     k0 = 2*np.pi/wavelength
     kx = k0*np.sin(angle)
     M = [[1,0],[0,1]] # initialise general matrix
+    
     for i in range(len(ds)): # ds should be one item shorter than ns, the final ns should be for the substrate
         n = np.real(ns[i])
         k = np.imag(ns[i])
@@ -174,13 +175,18 @@ def TMM(wavelength, angle, polarisation, ns, ds):
     r = -(M[1][0]/M[1][1])
     t = M[0][0] + M[0][1]*r
     
-    r = abs(r)**2
-    t = abs(t)**2 # want the transmittance and reflectance
+    r = abs(r) ** 2
+    t = abs(t) ** 2 # want the transmittance and reflectance
     
     return r, t
   
 data2 = np.loadtxt("BK7.txt", skiprows=1, unpack=True)
 data1 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
+
+# incominglam is the wavelength of the incident light
+# d is the thickness of the anti-reflection layer
+# incangle is the angle of incidence
+
 incominglam = 500
 d = np.arange(0, 160, 0.25)
 incangle = np.arange(0, 1, 0.01)
@@ -188,7 +194,6 @@ incomingpol = "s"
 
 output = []
 analytic = []
-
 
 
 for i in incangle:
@@ -199,10 +204,14 @@ for i in incangle:
 
         ns = [n1, n2]
         ds = [j]
-
+        
+        #Obtaining the reflection and transmission for a range of values
+        
         r, t = TMM(incominglam, i, incomingpol, ns, ds)
         output.append((i,j,r))
-    d2 = incominglam/(np.real(n1)*4*np.cos(i)) # the analytical formula for d given the phase
+    
+    # Calculating the theoretical optimal parameters    
+    d2 = incominglam/(np.real(n1) * 4 * np.cos(i)) # the analytical formula for d given the phase
     ds = [d2]
 
     r2, t2 = TMM(incominglam, i, incomingpol, ns, ds )
@@ -211,7 +220,8 @@ for i in incangle:
 xcoord = []
 ycoord = []
 zcoord = []
-for i in output:
+
+for i in output: # Output consists of angle value, thickness value, and reflection coefficient
 
     xcoord.append(i[0])
     ycoord.append(i[1])
@@ -236,19 +246,11 @@ ax.set_zlabel("reflection")
 
 
 ax.plot(xcoord2, ycoord2, zcoord2, color = 'r', zorder = 1, label =  "analytical formula")
-ax.scatter(xcoord, ycoord, zcoord, c=zcoord,cmap=cm.viridis, zorder = 2, alpha = 0.05)
+ax.scatter(xcoord, ycoord, zcoord, c=zcoord, cmap=cm.viridis, zorder = 2, alpha = 0.05)
 
 ax.legend()
 
 plt.show()
-
-
-
-
-
-
-
-
 
 
 
