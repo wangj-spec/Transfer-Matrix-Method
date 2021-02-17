@@ -174,8 +174,8 @@ def TMM(wavelength, angle, polarisation, ns, ds):
     r = -(M[1][0]/M[1][1])
     t = M[0][0] + M[0][1]*r
     
-    r = r**2
-    t = t**2 # want the transmittance and reflectance
+    r = abs(r)**2
+    t = abs(t)**2 # want the transmittance and reflectance
     
     return r, t
   
