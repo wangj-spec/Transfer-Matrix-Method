@@ -136,19 +136,21 @@ def chifunction (k0, kx, polarisation, ncomplex1, ncomplex2):
     
     return chip, chim # returns chi plus and chi minuts    
     
+
 def TMM(wavelength, angle, polarisation, ns, ds):
 
     if polarisation != 's' and polarisation != 'p':
         raise Exception("That is not a supported polarisation of light")
 
-    k0 = 2*np.pi/wavelength
-    kx = k0*np.sin(angle)
+    k0 = 2 * np.pi / wavelength
+    kx = k0 * np.sin(angle)
     M = [[1,0],[0,1]] # initialise general matrix
     
     for i in range(len(ds)): # ds should be one item shorter than ns, the final ns should be for the substrate
         n = np.real(ns[i])
-        k = np.imag(ns[i])
-        kz = np.sqrt((n*k0)**2 - kx**2)
+        k = np.imag(ns[i])  
+        kz = np.sqrt((n * k0) ** 2 - kx ** 2)
+        absorp_factor = np.exp( - k * ds[i] * kz / n) # Absorption coefficient in layer 
 
         if i == 0:
             n1 = 1 # air
@@ -158,7 +160,7 @@ def TMM(wavelength, angle, polarisation, ns, ds):
             n1 = ns[i-1]
             n2 = ns[i]
 
-        propagation = np.exp(complex(0,(kz*ds[i]))) # forward propagation
+        propagation = np.exp(complex(absorp_factor,(kz * ds[i]))) # forward propagation
         chip, chim = chifunction(k0, kx, polarisation, n1, n2)
         T_i = [[chip , chim],[chim, chip]]
         P_i = [[propagation, 0],[0, np.conj(propagation)]] # complex conjugate for backward propagation
@@ -180,6 +182,7 @@ def TMM(wavelength, angle, polarisation, ns, ds):
     
     return r, t
   
+    
 data2 = np.loadtxt("BK7.txt", skiprows=1, unpack=True)
 data1 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
 
@@ -262,7 +265,6 @@ plt.show()
 print('Maximum t+r value = '+str(max(tot_amp))+', minimum value ='+str(min(tot_amp))+ \
       ' Both of these values are on the order of 10^-16, suggesting this this a floating '\
       'point error.')
-
 
 
 
