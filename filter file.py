@@ -173,27 +173,76 @@ def TMM(wavelength, angle, polarisation, ns, ds):
 
     r = -(M[1][0]/M[1][1])
     t = M[0][0] + M[0][1]*r
-
+    
+    r = r**2
+    t = t**2 # want the transmittance and reflectance
+    
     return r, t
+  
+data2 = np.loadtxt("BK7.txt", skiprows=1, unpack=True)
+data1 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
+incominglam = 500
+d = np.arange(0, 160, 0.25)
+incangle = np.arange(0, 1, 0.01)
+incomingpol = "s"
+
+output = []
+analytic = []
 
 
 
+for i in incangle:
+    for j in d: # numerically getting all values
 
-data2 = np.loadtxt("BK7.txt", skiprows = 1, unpack = True)
-data1 = np.loadtxt("MgF2.txt", skiprows = 1, unpack = True)
+        n1 = complx_n(incominglam, *data1)
+        n2 = complx_n(incominglam, *data2)
 
-incominglam = 500 # in nm
-d = 3 # for now
-        # d and incoming lam to be changed around for the minimisation
-incomingpol = "s" #not sure if it changes anything, but worth bearing in mind
-n1 = complx_n(incominglam, *data1)
-n2 = complx_n(incominglam, *data2)
+        ns = [n1, n2]
+        ds = [j]
 
-ns = [n1,n2]
-ds = [d]
+        r, t = TMM(incominglam, i, incomingpol, ns, ds)
+        output.append((i,j,r))
+    d2 = incominglam/(np.real(n1)*4*np.cos(i)) # the analytical formula for d given the phase
+    ds = [d2]
 
-r , t = TMM(incominglam, 0, incomingpol, ns, ds )
-print(r, t)
+    r2, t2 = TMM(incominglam, i, incomingpol, ns, ds )
+    analytic.append((i, d2, r2))
+
+xcoord = []
+ycoord = []
+zcoord = []
+for i in output:
+
+    xcoord.append(i[0])
+    ycoord.append(i[1])
+    zcoord.append(i[2])
+
+xcoord2, ycoord2, zcoord2 = [], [], []
+for i in analytic:
+
+    xcoord2.append(i[0])
+    ycoord2.append(i[1])
+    zcoord2.append(i[2])
+
+ycoords = ycoord[::4]
+xcoords = xcoord[::4]
+zcoords = zcoord[::4]
+
+fig = plt.figure()
+ax = plt.axes(projection='3d')
+ax.set_xlabel("incidence angle rad")
+ax.set_ylabel("thickness nm")
+ax.set_zlabel("reflection")
+
+
+ax.plot(xcoord2, ycoord2, zcoord2, color = 'r', zorder = 1, label =  "analytical formula")
+ax.scatter(xcoord, ycoord, zcoord, c=zcoord,cmap=cm.viridis, zorder = 2, alpha = 0.05)
+
+ax.legend()
+
+plt.show()
+
+
 
 
 
