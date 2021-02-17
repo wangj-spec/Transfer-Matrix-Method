@@ -194,6 +194,7 @@ incomingpol = "s"
 
 output = []
 analytic = []
+tot_amp = []
 
 
 for i in incangle:
@@ -209,6 +210,7 @@ for i in incangle:
         
         r, t = TMM(incominglam, i, incomingpol, ns, ds)
         output.append((i,j,r))
+        tot_amp.append(r + t)
     
     # Calculating the theoretical optimal parameters    
     d2 = incominglam/(np.real(n1) * 4 * np.cos(i)) # the analytical formula for d given the phase
@@ -227,6 +229,8 @@ for i in output: # Output consists of angle value, thickness value, and reflecti
     ycoord.append(i[1])
     zcoord.append(i[2])
 
+# Creating the array of analytical values expected
+    
 xcoord2, ycoord2, zcoord2 = [], [], []
 for i in analytic:
 
@@ -234,9 +238,9 @@ for i in analytic:
     ycoord2.append(i[1])
     zcoord2.append(i[2])
 
-ycoords = ycoord[::4]
-xcoords = xcoord[::4]
-zcoords = zcoord[::4]
+ycoords = ycoord[::10]
+xcoords = xcoord[::10]
+zcoords = zcoord[::10]
 
 fig = plt.figure()
 ax = plt.axes(projection='3d')
@@ -252,7 +256,12 @@ ax.legend()
 
 plt.show()
 
+#  Checking if r + t = 1 (it should be equal to 1 as we haven't considered
+# absorption yet).
 
+print('Maximum t+r value = '+str(max(tot_amp))+', minimum value ='+str(min(tot_amp))+ \
+      ' Both of these values are on the order of 10^-16, suggesting this this a floating '\
+      'point error.')
 
 
 
