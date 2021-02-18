@@ -1,4 +1,5 @@
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Created on Thu Feb 11 11:22:05 2021
 @author: leonardobossi1
@@ -150,9 +151,9 @@ def TMM(wavelength, angle, polarisation, ns, ds):
         n = np.real(ns[i])
         k = np.imag(ns[i])  
         kz = np.sqrt((n * k0) ** 2 - kx ** 2)
-        absorp_factor = np.exp( - k * ds[i] * kz / n) # Absorption coefficient in layer 
+        absorp_factor = - k * ds[i] * kz / n # Absorption coefficient in layer 
 
-        if i == 0:
+        if i == 0: # setting incident medium to be air
             n1 = 1 # air
             n2 = ns[i] # the refractive index of the layer
 
@@ -199,7 +200,6 @@ output = []
 analytic = []
 tot_amp = []
 
-
 for i in incangle:
     for j in d: # numerically getting all values
 
@@ -235,6 +235,7 @@ for i in output: # Output consists of angle value, thickness value, and reflecti
 # Creating the array of analytical values expected
     
 xcoord2, ycoord2, zcoord2 = [], [], []
+
 for i in analytic:
 
     xcoord2.append(i[0])
@@ -267,6 +268,105 @@ print('Maximum t+r value = '+str(max(tot_amp))+', minimum value ='+str(min(tot_a
       'point error.')
 
 
+
+ 
+#%%
+# Absorption for a layer of gold
+    
+# Investigating for normal incidience (angle = 0)
+
+ang = 0 
+visible_spec = np.arange(380, 750, 1)
+d_range = np.arange(10, 100, 1)
+incomingpol = "s"
+
+# Creating output list with: wavelength, thickness, reflection, and transmission
+output_list = []
+
+for lam in visible_spec:
+    for d_val in d_range:
+        
+        n1 = complx_n(lam) # refractive index of gold
+        n2 = complx_n(lam, *data2) # refractive index of BK7 glass
+        
+        ns = [n1, n2]
+        ds= [d_val]
+        
+        r, t = TMM(lam, ang, incomingpol, ns, ds)
+
+        output_list.append((lam, d_val, r, t))
+        
+    
+xcoord2, ycoord2, r_vals, t_vals = [], [], [], []
+
+for output in output_list:
+
+    xcoord2.append(output[0])
+    ycoord2.append(output[1])
+    r_vals.append(output[2])
+    t_vals.append(output[3])
+
+
+fig = plt.figure()
+ax = plt.axes(projection='3d')
+ax.set_xlabel("Wavelegth")
+ax.set_ylabel("thickness nm")
+ax.set_zlabel("reflection")
+ax.set_title("Reflection variation for Gold layer on top of glass substrate for normal incidence")
+
+
+ax.scatter(xcoord2, ycoord2, r_vals, c = t_vals, cmap=cm.viridis, zorder = 2, alpha = 0.05)
+
+ax.legend()
+
+# Plotting the transmssion spectrum as a function of wavelength and thickness
+fig2 = plt.figure()
+ax2 = plt.axes(projection='3d')
+
+ax2 = plt.axes(projection='3d')
+ax2.set_xlabel("Wavelegth")
+ax2.set_ylabel("thickness nm")
+ax2.set_zlabel("Transmission coefficient")
+ax2.set_title("Transmission spectrum for Gold layer on top of glass substrate for normal incidence")
+
+
+ax2.scatter(xcoord2, ycoord2, t_vals, c=t_vals, cmap=cm.viridis, zorder = 2, alpha = 0.05)
+
+ax2.legend()
+
+
+data2d = []
+
+plt.figure()
+
+fixed_wavelength = 500
+ang = 0 # normal incidence
+
+for d_val in d_range:
+    
+    n1 = complx_n(fixed_wavelength) # refractive index of gold
+    n2 = complx_n(fixed_wavelength, *data2) # refractive index of BK7 glass
+        
+    ns = [n1, n2]
+    ds= [d_val]
+    r, t = TMM(fixed_wavelength, ang, incomingpol, ns, ds)
+
+    data2d.append((d_val, r, t))
+    
+data2d = np.array(data2d)
+    
+plt.scatter(data2d[:,0], data2d[:,2], 'kx', label = 'Transmission spectrum for fixed wavelength 500nm')
+plt.title('Gold layer with glass substrate')
+plt.xlabel('Thickness of layer (nm)')
+plt.ylabel('Transmission coefficient')
+plt.grid()
+        
+        
+        
+        
+        
+    
+    
 
 
 
