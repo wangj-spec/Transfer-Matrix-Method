@@ -195,9 +195,11 @@ incominglam = 500
 d = np.arange(0, 160, 0.25)
 incangle = np.arange(0, 1, 0.01)
 incomingpol = "s"
-
+incominglam2 = np.arange(331,800)
 output = []
+output2 = []
 analytic = []
+analytic2 = []
 tot_amp = []
 
 for i in incangle:
@@ -222,11 +224,29 @@ for i in incangle:
     r2, t2 = TMM(incominglam, i, incomingpol, ns, ds )
     analytic.append((i, d2, r2))
 
+for i in incominglam2:
+    for j in d: # numerically getting all values
+
+        n1 = complx_n(i, *data1)
+        n2 = complx_n(i, *data2)
+
+        ns = [n1, n2]
+        ds = [j]
+
+        r, t = TMM(i, 0, incomingpol, ns, ds)
+        output.append((i,j,r))
+    d2 = i/(np.real(n1)*4*np.cos(0)) # the analytical formula for d given the phase
+    ds = [d2]
+
+    r2, t2 = TMM(i, 0, incomingpol, ns, ds )
+    analytic.append((i, d2, r2))
+
+    
 xcoord = []
 ycoord = []
 zcoord = []
 
-for i in output: # Output consists of angle value, thickness value, and reflection coefficient
+for i in output: # Output consists of angle value, thickness value, and reflection coefficient (for plot of varying lambda use output2)
 
     xcoord.append(i[0])
     ycoord.append(i[1])
@@ -236,7 +256,7 @@ for i in output: # Output consists of angle value, thickness value, and reflecti
     
 xcoord2, ycoord2, zcoord2 = [], [], []
 
-for i in analytic:
+for i in analytic:  #for plot of lambda use analytic2
 
     xcoord2.append(i[0])
     ycoord2.append(i[1])
