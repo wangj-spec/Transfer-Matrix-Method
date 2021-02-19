@@ -9,6 +9,16 @@ Created on Fri Feb 19 12:28:54 2021
 import numpy as np
 
 def linterpol(wavelength, wavedata, indexdata):
+        '''
+    Args:
+        wavelength:: float
+        wavedata:: numpy.array
+            Discrete wavelength values used to interpolate
+        indexdata:: numpy.array
+            Corresponding refractive index values
+    Returns:
+        Interpolated refractive index value for given wavelength.
+    '''
 
     grad = 0 #initialise grad
     j = 0 #initialise j
