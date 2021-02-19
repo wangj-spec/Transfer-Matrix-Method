@@ -183,6 +183,29 @@ def TMM(wavelength, angle, polarisation, ns, ds):
 
 
 def stacklayers(N, wavelength, d1 , d2, material1, material2):
+    """
+    Creates a periodic structure from two materials
+    :params:
+            N:: int
+                    Number of periods in the structure
+            wavelength::    float
+                    Wavelength of the incident wave in free space
+            d1::    float
+                    Width of the first layer in the structure
+            d2::    float
+                    Width of the second layer in the structure
+            material1::     array of length 3
+                    Data on the first material in the form (wavelength, refractive index, absorption coefficient)
+            material2::     array of length 3
+                    Data on the first material in the form (wavelength, refractive index, absorption coefficient)
+    :returns:
+            ns::    array of length 2N:
+                    Array of complex refractive indices at each layer, not including refractive index of final substrate
+            ds::    array of length 2N
+                    Array of widths at each layer
+
+    """
+
     ns = []
     ds = []
     n1 = complx_n(wavelength,*material1)
@@ -200,6 +223,37 @@ def stacklayers(N, wavelength, d1 , d2, material1, material2):
 
 
 def find_N(r_val, wavelength, d1, d2, angle, polarisation, material1, material2):
+
+    """
+    Finds how many periods of a periodically stacking structure of two materials
+    is needed to create a highly reflective mirror with reflectance greater than a given value
+
+
+    :params:
+            r_val:: float
+                    Value of reflectance to be reached
+            wavelength::    float
+                            Wavelength of the incoming wave in free space
+            d1::    float
+                    The width of the first layer in the periodically stacking structure
+            d2::    float
+                    The width of the second layer in the periodically stacking material
+            angle:: float
+                    The incidence angle of the wave
+            polarisation::  string
+                            Either 's' or 'p', the polarisation of the wave
+            material1:: array of length 3
+                        Data on the first material in the form (wavelength, refractive index, absorption coefficient)
+            material2:: array of length 3
+                        Data on the second material in the form (wavelength, refractive index, absorption coefficient)
+    :return:
+            N:: int
+                Number of periods needed for reflectance greater than r_val
+            r_current:  float
+                        Reflectance value of the N period structure
+            plot:   array of size (N, 2)
+                    An array containing the reflectance at each structure size
+    """
     N = 1
     plot = []
     r_current = 0 # initialies r_current
@@ -212,5 +266,4 @@ def find_N(r_val, wavelength, d1, d2, angle, polarisation, material1, material2)
     plot.append([N, r_current])
 
     return N, r_current, plot
-
 
