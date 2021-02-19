@@ -18,6 +18,8 @@ MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
 BK7 = np.loadtxt("BK7.txt", skiprows=1, unpack=True)
 Au = np.loadtxt('RefractiveIndexINFO.csv', skiprows = 1, delimiter = ',', unpack = True)
 
+# Converting from micrometers to nanometers
+Au[0] = Au[0] * 1000
 
 wavelength, n, k= np.loadtxt("BK7.txt", skiprows = 1, unpack = True)
 wavelength = np.array(wavelength) # to avoid problems with curvefit make everything into arrays
@@ -170,6 +172,7 @@ for lam in visible_spec:
         
         n1 = tmm.complx_n(lam, *Au) # refractive index of gold
         n2 = tmm.complx_n(lam, *BK7) # refractive index of BK7 glass
+        print(type(n1))
         
         ns = [n1, n2]
         ds= [d_val]
@@ -291,6 +294,16 @@ for ang in ang_range:
     r_output.append(r)
     t_output.append(t)
     test.append(ang)
+    
+    
+    
+   
+    
+
+
+
+
+
     
     
     
