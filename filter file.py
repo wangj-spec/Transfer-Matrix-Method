@@ -195,11 +195,9 @@ incominglam = 500
 d = np.arange(0, 160, 0.25)
 incangle = np.arange(0, 1, 0.01)
 incomingpol = "s"
-incominglam2 = np.arange(331,800)
+
 output = []
-output2 = []
 analytic = []
-analytic2 = []
 tot_amp = []
 
 for i in incangle:
@@ -224,29 +222,11 @@ for i in incangle:
     r2, t2 = TMM(incominglam, i, incomingpol, ns, ds )
     analytic.append((i, d2, r2))
 
-for i in incominglam2:
-    for j in d: # numerically getting all values
-
-        n1 = complx_n(i, *data1)
-        n2 = complx_n(i, *data2)
-
-        ns = [n1, n2]
-        ds = [j]
-
-        r, t = TMM(i, 0, incomingpol, ns, ds)
-        output.append((i,j,r))
-    d2 = i/(np.real(n1)*4*np.cos(0)) # the analytical formula for d given the phase
-    ds = [d2]
-
-    r2, t2 = TMM(i, 0, incomingpol, ns, ds )
-    analytic.append((i, d2, r2))
-
-    
 xcoord = []
 ycoord = []
 zcoord = []
 
-for i in output: # Output consists of angle value, thickness value, and reflection coefficient (for plot of varying lambda use output2)
+for i in output: # Output consists of angle value, thickness value, and reflection coefficient
 
     xcoord.append(i[0])
     ycoord.append(i[1])
@@ -256,7 +236,7 @@ for i in output: # Output consists of angle value, thickness value, and reflecti
     
 xcoord2, ycoord2, zcoord2 = [], [], []
 
-for i in analytic:  #for plot of lambda use analytic2
+for i in analytic:
 
     xcoord2.append(i[0])
     ycoord2.append(i[1])
@@ -357,7 +337,6 @@ ax2.legend()
 
 data2d = []
 
-plt.figure()
 
 fixed_wavelength = 500
 ang = 0 # normal incidence
@@ -375,23 +354,27 @@ for d_val in d_range:
     
 data2d = np.array(data2d)
     
-plt.scatter(data2d[:,0], data2d[:,2], 'kx', label = 'Transmission spectrum for fixed wavelength 500nm')
+plt.figure()
+plt.scatter(data2d[:,0], data2d[:,2], label = 'Transmission spectrum for fixed wavelength 500nm')
 plt.title('Gold layer with glass substrate')
 plt.xlabel('Thickness of layer (nm)')
 plt.ylabel('Transmission coefficient')
 plt.grid()
         
+ 
 #%%
-data2 = np.loadtxt("Ta2O5.csv", skiprows=1, unpack=True, delimiter=",")
-data1 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
+Ta2O5 = np.loadtxt("Ta2O5.csv", skiprows=1, unpack=True, delimiter=",")
+MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
 
 fixed_wavelength = 633
 incangle = 0
 polarisation = "s"
 
-def stacklayers (N, d1 ,d2 ):
-    n1 = complx_n(fixed_wavelength,*data1)
-    n2 = complx_n(fixed_wavelength,*data2)
+def stacklayers(N, d1 , d2, material1, material2):
+    ns = []
+    ds = []
+    n1 = complx_n(fixed_wavelength,*material1)
+    n2 = complx_n(fixed_wavelength,*material2)
 
 
     for i in range(N):
@@ -403,12 +386,14 @@ def stacklayers (N, d1 ,d2 ):
     return ns, ds
 
 
-def find_N(r_val, wavelength, d1, d2, angle, polarisation):
+
+def find_N(r_val, wavelength, d1, d2, angle, polarisation, material1, material2):
     N = 1
     plot = []
     r_current = 0 # initialies r_current
+    
     while r_current < r_val:
-        ns, ds = stacklayers(N, d1, d2)
+        ns, ds = stacklayers(N, d1, d2, material1, material2)
         r_current = TMM(wavelength, angle, polarisation, ns, ds)[0]
         plot.append([N, r_current])
         N += 1
@@ -416,12 +401,12 @@ def find_N(r_val, wavelength, d1, d2, angle, polarisation):
 
     return N, r_current, plot
 
-n_1 = complx_n(fixed_wavelength, *data1)
+n_1 = complx_n(fixed_wavelength, *MgF2)
 n_1 = np.real(n_1)
-n_2 = complx_n(fixed_wavelength, *data2)
+n_2 = complx_n(fixed_wavelength, *Ta2O5)
 n_2 = np.real(n_2)
 
-N, r_current, plot = find_N(0.9999, fixed_wavelength,     100, 100, angle = incangle, polarisation= polarisation)
+N, r_current, plot = find_N(0.9999, fixed_wavelength,  50, 50, incangle, polarisation, Ta2O5, MgF2)
 
 nplot = []
 rplot = []
@@ -434,11 +419,33 @@ im = plt.figure()
 plt.xlabel("Number of stacks")
 plt.ylabel("Reflectance")
 plt.scatter(nplot, rplot)
-plt.show()        
+plt.show() 
         
-        
-        
+
+# Investigating different incoming angles
+
+# Creating a stack
+N_stack = 2 # Period of layers
+d1 = 50
+d2 = 50 # thicknesses of the two material layers
+
+n_stack, d_stack = stacklayers(N_stack, d1, d2, Ta2O5, MgF2)
+
+ang_range = np.arange(0, np.pi/2, 0.01)
+r_output = []
+t_output = []
+test= [] 
+
+for ang in ang_range:
+    r, t = TMM(fixed_wavelength, ang, polarisation, n_stack, d_stack)
     
+    r_output.append(r)
+    t_output.append(t)
+    test.append(ang)
+    
+    
+    
+   
     
 
 
