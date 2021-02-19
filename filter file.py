@@ -381,7 +381,60 @@ plt.xlabel('Thickness of layer (nm)')
 plt.ylabel('Transmission coefficient')
 plt.grid()
         
-        
+#%%
+data2 = np.loadtxt("Ta2O5.csv", skiprows=1, unpack=True, delimiter=",")
+data1 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
+
+fixed_wavelength = 633
+incangle = 0
+polarisation = "s"
+
+def stacklayers (N, d1 ,d2 ):
+    n1 = complx_n(fixed_wavelength,*data1)
+    n2 = complx_n(fixed_wavelength,*data2)
+
+
+    for i in range(N):
+        ns.append(n1)
+        ds.append(d1)
+        ns.append(n2)
+        ds.append(d2)
+
+    return ns, ds
+
+
+def find_N(r_val, wavelength, d1, d2, angle, polarisation):
+    N = 1
+    plot = []
+    r_current = 0 # initialies r_current
+    while r_current < r_val:
+        ns, ds = stacklayers(N, d1, d2)
+        r_current = TMM(wavelength, angle, polarisation, ns, ds)[0]
+        plot.append([N, r_current])
+        N += 1
+    plot.append([N, r_current])
+
+    return N, r_current, plot
+
+n_1 = complx_n(fixed_wavelength, *data1)
+n_1 = np.real(n_1)
+n_2 = complx_n(fixed_wavelength, *data2)
+n_2 = np.real(n_2)
+
+N, r_current, plot = find_N(0.9999, fixed_wavelength,     100, 100, angle = incangle, polarisation= polarisation)
+
+nplot = []
+rplot = []
+
+for i in plot:
+    nplot.append(i[0])
+    rplot.append(i[1])
+
+im = plt.figure()
+plt.xlabel("Number of stacks")
+plt.ylabel("Reflectance")
+plt.scatter(nplot, rplot)
+plt.show()        
         
         
         
