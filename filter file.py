@@ -11,6 +11,12 @@ from scipy.optimize import curve_fit
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.cm as cm
 
+# Importing different materials
+Ta2O5 = np.loadtxt("Ta2O5.csv", skiprows=1, unpack=True, delimiter=",")
+MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
+BK7 = np.loadtxt("BK7.txt", skiprows=1, unpack=True)
+Au = np.loadtxt('RefractiveIndexINFO.csv', skiprows = 1, delimiter = ',', unpack = True)
+
 def linterpol(wavelength, wavedata, indexdata):
 
     grad = 0 #initialise grad
@@ -42,6 +48,19 @@ def sellmeier(wavelength, a1, a2, a3, b1, b2, b3):
     n = np.sqrt(n_squared)
     
     return n
+
+
+def complx_n(lam, lam_data, real_data, img_data):
+    
+    if lam > lam_data[-1] or lam < lam_data[0]:
+        raise Exception('Inputted value is out of range provided in the data')
+        
+    n_real = linterpol(lam, lam_data, real_data)
+    n_img = linterpol(lam, lam_data, img_data)
+    n = complex(n_real, n_img)
+    
+    return n
+
 
 
 wavelength, n, k= np.loadtxt("BK7.txt", skiprows = 1, unpack = True)
@@ -91,25 +110,7 @@ plt.ylabel('refractive index')
 plt.plot(wavelength, k, 'x', label = 'imaginary values for BK7 glass')
 plt.grid()
 
-#%%
-# Gold data, wavelength is given in micrometers
 
-gold_data = np.loadtxt('RefractiveIndexINFO.csv', skiprows = 1, delimiter = ',', unpack = True)
-
-# Converting to nonmeters
-Au_wavelgth = gold_data[0] * 10 ** 3 
-
-
-def complx_n(lam, lam_data = Au_wavelgth, real_data = gold_data[1], img_data = gold_data[2]):
-    
-    if lam > lam_data[-1] or lam < lam_data[0]:
-        raise Exception('Inputted value is out of range provided in the data')
-        
-    n_real = linterpol(lam, lam_data, real_data)
-    n_img = linterpol(lam, lam_data, img_data)
-    n = complex(n_real, n_img)
-    
-    return n
 
 #%%
 def chifunction (k0, kx, polarisation, ncomplex1, ncomplex2):
@@ -184,9 +185,6 @@ def TMM(wavelength, angle, polarisation, ns, ds):
     return r, t
   
     
-data2 = np.loadtxt("BK7.txt", skiprows=1, unpack=True)
-data1 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
-
 # incominglam is the wavelength of the incident light
 # d is the thickness of the anti-reflection layer
 # incangle is the angle of incidence
@@ -203,8 +201,8 @@ tot_amp = []
 for i in incangle:
     for j in d: # numerically getting all values
 
-        n1 = complx_n(incominglam, *data1)
-        n2 = complx_n(incominglam, *data2)
+        n1 = complx_n(incominglam, *MgF2)
+        n2 = complx_n(incominglam, *BK7)
 
         ns = [n1, n2]
         ds = [j]
@@ -286,8 +284,8 @@ output_list = []
 for lam in visible_spec:
     for d_val in d_range:
         
-        n1 = complx_n(lam) # refractive index of gold
-        n2 = complx_n(lam, *data2) # refractive index of BK7 glass
+        n1 = complx_n(lam, *Au) # refractive index of gold
+        n2 = complx_n(lam, *BK7) # refractive index of BK7 glass
         
         ns = [n1, n2]
         ds= [d_val]
@@ -343,8 +341,8 @@ ang = 0 # normal incidence
 
 for d_val in d_range:
     
-    n1 = complx_n(fixed_wavelength) # refractive index of gold
-    n2 = complx_n(fixed_wavelength, *data2) # refractive index of BK7 glass
+    n1 = complx_n(fixed_wavelength, *Au) # refractive index of gold
+    n2 = complx_n(fixed_wavelength, *BK7) # refractive index of BK7 glass
         
     ns = [n1, n2]
     ds= [d_val]
@@ -363,8 +361,6 @@ plt.grid()
         
  
 #%%
-Ta2O5 = np.loadtxt("Ta2O5.csv", skiprows=1, unpack=True, delimiter=",")
-MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
 
 fixed_wavelength = 633
 incangle = 0
