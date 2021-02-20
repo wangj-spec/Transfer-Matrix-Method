@@ -259,7 +259,7 @@ def find_N(r_val, wavelength, d1, d2, angle, polarisation, material1, material2)
     r_current = 0 # initialies r_current
     
     while r_current < r_val:
-        ns, ds = stacklayers(N, d1, d2, material1, material2)
+        ns, ds = stacklayers(N, wavelength, d1, d2, material1, material2)
         r_current = TMM(wavelength, angle, polarisation, ns, ds)[0]
         plot.append([N, r_current])
         N += 1
