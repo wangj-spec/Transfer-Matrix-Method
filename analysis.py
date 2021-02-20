@@ -253,11 +253,6 @@ fixed_wavelength = 633
 incangle = 0
 polarisation = "s"
 
-n_1 = tmm.complx_n(fixed_wavelength, *MgF2)
-n_1 = np.real(n_1)
-n_2 = tmm.complx_n(fixed_wavelength, *Ta2O5)
-n_2 = np.real(n_2)
-
 N, r_current, plot = tmm.find_N(0.9999, fixed_wavelength,  50, 50, incangle, polarisation, Ta2O5, MgF2)
 
 nplot = []
@@ -272,10 +267,17 @@ plt.xlabel("Number of stacks")
 plt.ylabel("Reflectance")
 plt.scatter(nplot, rplot)
 plt.show() 
-        
+
+# Finding the reflectivity of gold at wavelength = 633 nm (task 12)
+n_gold = tmm.complx_n(633, *Au)
+n_substrate = tmm.complx_n(633, *BK7)
+d_opt = [633 / (np.real(n_gold) * 4)  ]
+
+r_gold = tmm.TMM(633, 0, 's', [n_gold, n_substrate], d_opt)
+
+print('reflectivity of gold at 633nm wavelength = '+str(r_gold[0]))
 
 # Investigating different incoming angles
-
 # Creating a stack
 N_stack = 2 # Period of layers
 d1 = 50
@@ -295,7 +297,20 @@ for ang in ang_range:
     t_output.append(t)
     test.append(ang)
     
-    
+#Plotting transmission and reflection
+plt.figure()
+plt.scatter(angles, r_output, label='R coefficient')
+plt.xlabel("Angle of incidence (rad)")
+plt.ylabel("Reflectance/Transmission coefficient")
+plt.legend()
+plt.grid()
+
+plt.figure()
+plt.scatter(angles, t_output, label='T coefficient', color='r')
+plt.xlabel("Angle of incidence (rad)")
+plt.ylabel("Reflectance/Transmission coefficient")
+plt.legend()
+plt.grid()    
     
    
     
