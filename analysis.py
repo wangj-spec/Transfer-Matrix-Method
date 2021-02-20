@@ -14,6 +14,7 @@ import matplotlib.cm as cm
 
 # Importing different materials
 Ta2O5 = np.loadtxt("Ta2O5.csv", skiprows=1, unpack=True, delimiter=",")
+Ta2O5[0] = Ta2O5*10**3
 MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
 BK7 = np.loadtxt("BK7.txt", skiprows=1, unpack=True)
 Au = np.loadtxt('RefractiveIndexINFO.csv', skiprows = 1, delimiter = ',', unpack = True)
