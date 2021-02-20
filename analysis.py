@@ -289,14 +289,14 @@ n_stack, d_stack = tmm.stacklayers(N_stack, d1, d2, Ta2O5, MgF2)
 ang_range = np.arange(0, np.pi/2, 0.01)
 r_output = []
 t_output = []
-test= [] 
+angles= [] 
 
 for ang in ang_range:
     r, t = tmm.TMM(fixed_wavelength, ang, polarisation, n_stack, d_stack)
     
     r_output.append(r)
     t_output.append(t)
-    test.append(ang)
+    angles.append(ang)
     
 #Plotting transmission and reflection
 plt.figure()
