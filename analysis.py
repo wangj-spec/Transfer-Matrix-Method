@@ -313,7 +313,39 @@ plt.ylabel("Reflectance/Transmission coefficient")
 plt.legend()
 plt.grid()    
     
-   
+#%%
+# for wavelength of 633nm, phase response of reflected wave with both gold and dbr
+n_gold = tmm.complx_n(633, *Au)
+n_substrate = tmm.complx_n(633, *BK7)
+dG = [633 / (np.real(n_gold) * 4)]
+
+nT = tmm.complx_n(fixed_wavelength,*Ta2O5)
+nM = tmm.complx_n(fixed_wavelength,*MgF2)
+dT = 633/(np.real(nT)*4*np.cos(incangle))
+dM = 633/(np.real(nM)*4*np.cos(incangle))
+
+n_stack, d_stack = tmm.stacklayers(14, 633, dM, dT, MgF2, Ta2O5, nfinal = n_substrate)
+
+var_wavelength = np.arange(551,741)
+rsphases = []
+rgphases = []
+for i in var_wavelength:
+    rstack, tstack = tmm.TMM(i, 0, "s", n_stack,d_stack, squared = False)
+    rgold, tgold = tmm.TMM(i, 0, "s", [n_gold,n_substrate],dG, squared = False)
+    rsphase = np.angle(rstack)
+    rgphase = np.angle(rgold)
+    rsphases.append(rsphase)
+    rgphases.append(rgphase)
+
+plt.figure()
+plt.plot(var_wavelength,rsphases, label = "Phase response of DBR")
+plt.plot(var_wavelength,rgphases, label = "Phase response of gold")
+plt.legend()
+plt.xlabel("Wavength in nm")
+plt.ylabel("Phase of reflectance in rad")
+plt.yticks([-np.pi, -np.pi/2, 0, np.pi/2, np.pi],
+          [r'$-\pi$', r'$-\pi/2$', r'$0$', r'$+\pi/2$', r'$+\pi$'])
+plt.show()   
     
 
 
