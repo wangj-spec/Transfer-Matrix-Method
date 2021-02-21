@@ -120,7 +120,7 @@ def chifunction (k0, kx, polarisation, ncomplex1, ncomplex2):
     
 
 
-def TMM(wavelength, angle, polarisation, ns, ds):
+def TMM(wavelength, angle, polarisation, ns, ds, squared = "True"):
     '''
     Parameters:
         wavelength:: float
@@ -175,12 +175,14 @@ def TMM(wavelength, angle, polarisation, ns, ds):
 
     r = -(M[1][0]/M[1][1])
     t = M[0][0] + M[0][1]*r
+        
+    r2 = abs(r) ** 2
+    t2 = abs(t) ** 2 # want the transmittance and reflectance
     
-    r = abs(r) ** 2
-    t = abs(t) ** 2 # want the transmittance and reflectance
-    
-    return r, t
-
+    if squared == True: #returns transmittance and reflectance for power
+        return r2,t2
+    elif squared == False:
+        return r,t # returns fresnel coefficients of r, t for electric field
 
 def stacklayers(N, wavelength, d1 , d2, material1, material2):
     """
