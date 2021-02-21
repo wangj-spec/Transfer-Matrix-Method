@@ -6,6 +6,7 @@ Created on Thu Feb 11 11:22:05 2021
 """
 
 import numpy as np
+import transfermatrix as tmm
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from mpl_toolkits.mplot3d import Axes3D
@@ -17,51 +18,10 @@ MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
 BK7 = np.loadtxt("BK7.txt", skiprows=1, unpack=True)
 Au = np.loadtxt('RefractiveIndexINFO.csv', skiprows = 1, delimiter = ',', unpack = True)
 
-def linterpol(wavelength, wavedata, indexdata):
+Ta2O5[0] = Ta2O5[0] * 1000
 
-    grad = 0 #initialise grad
-    j = 0 #initialise j
-
-    for i in range(len(wavedata)):
-        if wavedata[0] >= wavelength:
-            grad = (wavelength - wavedata[0])/(wavedata[1] - wavedata[0])
-            j = 1
-            break # linear extrapolation
-        elif wavedata[i] >= wavelength:
-            grad = (wavelength - wavedata[i])/(wavedata[i] - wavedata[i-1])
-            j = i
-            break # linear interpolation
-        elif wavedata[-1] < wavelength:
-            grad = (wavelength - wavedata[-1])/(wavedata[-1] - wavedata[-2])
-            j = -1
-            break # linear extrapolation
-
-    interpol = grad*(indexdata[j] - indexdata[j-1]) + indexdata[j]
-    
-    return interpol
-
-
-def sellmeier(wavelength, a1, a2, a3, b1, b2, b3):
-    n_squared = 1 + (a1 * wavelength ** 2)/(wavelength ** 2 - b1) + (a2 * wavelength **2 )/ (wavelength ** 2 - b2) +\
-             (a3 * wavelength ** 2)/(wavelength ** 2 - b3)
-
-    n = np.sqrt(n_squared)
-    
-    return n
-
-
-def complx_n(lam, lam_data, real_data, img_data):
-    
-    if lam > lam_data[-1] or lam < lam_data[0]:
-        raise Exception('Inputted value is out of range provided in the data')
-        
-    n_real = linterpol(lam, lam_data, real_data)
-    n_img = linterpol(lam, lam_data, img_data)
-    n = complex(n_real, n_img)
-    
-    return n
-
-
+# Converting from micrometers to nanometers
+Au[0] = Au[0] * 1000
 
 wavelength, n, k= np.loadtxt("BK7.txt", skiprows = 1, unpack = True)
 wavelength = np.array(wavelength) # to avoid problems with curvefit make everything into arrays
@@ -76,8 +36,8 @@ S_coefficients = list([1.03961212, 0.231792344, 1.01046945, 6.00069867e3, 2.0017
 
 # Trial wavelength range
 trial = np.arange(330, 2500, 0.2)
-interplovals = list(map(lambda x: linterpol(x, wavelength, n), trial))
-sellmeiervals = list(map(lambda x: sellmeier(x, *S_coefficients), trial))
+interplovals = list(map(lambda x: tmm.linterpol(x, wavelength, n), trial))
+sellmeiervals = list(map(lambda x: tmm.sellmeier(x, *S_coefficients), trial))
 
 plt.figure()
 plt.plot(trial, interplovals)
@@ -113,78 +73,6 @@ plt.grid()
 
 
 #%%
-def chifunction (k0, kx, polarisation, ncomplex1, ncomplex2):
-
-    n1 = np.real(ncomplex1)
-    n2 = np.real(ncomplex2)
-
-    kz1 = np.sqrt((n1*k0)**2 - kx**2)
-    kz2 = np.sqrt((n2*k0)**2 - kx**2)
-
-    if polarisation == "p":
-
-        alpha = (n2/n1)*np.sqrt(kz1/kz2)
-        chip = (alpha + 1/alpha)/2
-        chim = (alpha - 1/alpha)/2
-
-    elif polarisation == "s":
-
-        alpha = np.sqrt(kz2/kz1)
-        chip = (alpha + 1/alpha)/2
-        chim = (alpha - 1/alpha)/2
-
-    else:
-        raise Exception("That is not a supported polarisation of light")
-    
-    return chip, chim # returns chi plus and chi minuts    
-    
-
-def TMM(wavelength, angle, polarisation, ns, ds):
-
-    if polarisation != 's' and polarisation != 'p':
-        raise Exception("That is not a supported polarisation of light")
-
-    k0 = 2 * np.pi / wavelength
-    kx = k0 * np.sin(angle)
-    M = [[1,0],[0,1]] # initialise general matrix
-    
-    for i in range(len(ds)): # ds should be one item shorter than ns, the final ns should be for the substrate
-        n = np.real(ns[i])
-        k = np.imag(ns[i])  
-        kz = np.sqrt((n * k0) ** 2 - kx ** 2)
-        absorp_factor = - k * ds[i] * kz / n # Absorption coefficient in layer 
-
-        if i == 0: # setting incident medium to be air
-            n1 = 1 # air
-            n2 = ns[i] # the refractive index of the layer
-
-        else:
-            n1 = ns[i-1]
-            n2 = ns[i]
-
-        propagation = np.exp(complex(absorp_factor,(kz * ds[i]))) # forward propagation
-        chip, chim = chifunction(k0, kx, polarisation, n1, n2)
-        T_i = [[chip , chim],[chim, chip]]
-        P_i = [[propagation, 0],[0, np.conj(propagation)]] # complex conjugate for backward propagation
-        interstep = np.matmul(P_i, T_i)
-        M = np.matmul(interstep, M)
-
-    n1 = ns[-2]
-    n2 = ns[-1]
-
-    chip, chim = chifunction(k0, kx, polarisation, n1, n2)
-    T_i = [[chip , chim],[chim, chip]] # interfacial for the substrate
-    M = np.matmul(T_i, M)
-
-    r = -(M[1][0]/M[1][1])
-    t = M[0][0] + M[0][1]*r
-    
-    r = abs(r) ** 2
-    t = abs(t) ** 2 # want the transmittance and reflectance
-    
-    return r, t
-  
-    
 # incominglam is the wavelength of the incident light
 # d is the thickness of the anti-reflection layer
 # incangle is the angle of incidence
@@ -201,15 +89,15 @@ tot_amp = []
 for i in incangle:
     for j in d: # numerically getting all values
 
-        n1 = complx_n(incominglam, *MgF2)
-        n2 = complx_n(incominglam, *BK7)
+        n1 = tmm.complx_n(incominglam, *MgF2)
+        n2 = tmm.complx_n(incominglam, *BK7)
 
         ns = [n1, n2]
         ds = [j]
         
         #Obtaining the reflection and transmission for a range of values
         
-        r, t = TMM(incominglam, i, incomingpol, ns, ds)
+        r, t = tmm.TMM(incominglam, i, incomingpol, ns, ds)
         output.append((i,j,r))
         tot_amp.append(r + t)
     
@@ -217,7 +105,7 @@ for i in incangle:
     d2 = incominglam/(np.real(n1) * 4 * np.cos(i)) # the analytical formula for d given the phase
     ds = [d2]
 
-    r2, t2 = TMM(incominglam, i, incomingpol, ns, ds )
+    r2, t2 = tmm.TMM(incominglam, i, incomingpol, ns, ds )
     analytic.append((i, d2, r2))
 
 xcoord = []
@@ -274,7 +162,7 @@ print('Maximum t+r value = '+str(max(tot_amp))+', minimum value ='+str(min(tot_a
 # Investigating for normal incidience (angle = 0)
 
 ang = 0 
-visible_spec = np.arange(380, 750, 1)
+visible_spec = np.arange(500, 900, 1)
 d_range = np.arange(10, 100, 1)
 incomingpol = "s"
 
@@ -284,13 +172,14 @@ output_list = []
 for lam in visible_spec:
     for d_val in d_range:
         
-        n1 = complx_n(lam, *Au) # refractive index of gold
-        n2 = complx_n(lam, *BK7) # refractive index of BK7 glass
+        n1 = tmm.complx_n(lam, *Au) # refractive index of gold
+        n2 = tmm.complx_n(lam, *BK7) # refractive index of BK7 glass
+        print(type(n1))
         
         ns = [n1, n2]
         ds= [d_val]
         
-        r, t = TMM(lam, ang, incomingpol, ns, ds)
+        r, t = tmm.TMM(lam, ang, incomingpol, ns, ds)
 
         output_list.append((lam, d_val, r, t))
         
@@ -341,12 +230,12 @@ ang = 0 # normal incidence
 
 for d_val in d_range:
     
-    n1 = complx_n(fixed_wavelength, *Au) # refractive index of gold
-    n2 = complx_n(fixed_wavelength, *BK7) # refractive index of BK7 glass
+    n1 = tmm.complx_n(fixed_wavelength, *Au) # refractive index of gold
+    n2 = tmm.complx_n(fixed_wavelength, *BK7) # refractive index of BK7 glass
         
     ns = [n1, n2]
     ds= [d_val]
-    r, t = TMM(fixed_wavelength, ang, incomingpol, ns, ds)
+    r, t = tmm.TMM(fixed_wavelength, ang, incomingpol, ns, ds)
 
     data2d.append((d_val, r, t))
     
@@ -361,49 +250,21 @@ plt.grid()
         
  
 #%%
+import transfermatrix as tmm
 
 fixed_wavelength = 633
 incangle = 0
 polarisation = "s"
 
-def stacklayers(N, d1 , d2, material1, material2):
-    ns = []
-    ds = []
-    n1 = complx_n(fixed_wavelength,*material1)
-    n2 = complx_n(fixed_wavelength,*material2)
+# Finding the number of periods required to reach 99.99% reflectivity, d1=d2=50nm,
+# We used materials Ta2O5 and MgF2 with air substrate.
 
+lam_opt = 633
 
-    for i in range(N):
-        ns.append(n1)
-        ds.append(d1)
-        ns.append(n2)
-        ds.append(d2)
+d1opt =lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *Ta2O5)))
+d2opt = lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *MgF2)))
 
-    return ns, ds
-
-
-
-def find_N(r_val, wavelength, d1, d2, angle, polarisation, material1, material2):
-    N = 1
-    plot = []
-    r_current = 0 # initialies r_current
-    
-    while r_current < r_val:
-        ns, ds = stacklayers(N, d1, d2, material1, material2)
-        r_current = TMM(wavelength, angle, polarisation, ns, ds)[0]
-        plot.append([N, r_current])
-        N += 1
-    plot.append([N, r_current])
-
-    return N, r_current, plot
-
-n_1 = complx_n(fixed_wavelength, *MgF2)
-n_1 = np.real(n_1)
-n_2 = complx_n(fixed_wavelength, *Ta2O5)
-n_2 = np.real(n_2)
-
-N, r_current, plot = find_N(0.9999, fixed_wavelength,  50, 50, incangle, polarisation, Ta2O5, MgF2)
-
+N, r_current, plot = tmm.find_N(0.9999, fixed_wavelength,  d1opt, d2opt, incangle, polarisation, Ta2O5, MgF2)
 nplot = []
 rplot = []
 
@@ -414,9 +275,19 @@ for i in plot:
 im = plt.figure()
 plt.xlabel("Number of stacks")
 plt.ylabel("Reflectance")
+plt.title('Number of stacks (each stack has 2 layers) required to reach 99.99% reflectivity.')
 plt.scatter(nplot, rplot)
+plt.grid()
 plt.show() 
-        
+     
+# Finding the reflectivity of gold at wavelength = 633 nm (task 12)
+n_gold = tmm.complx_n(633, *Au)
+n_substrate = tmm.complx_n(633, *BK7)
+d_opt = [633 / (np.real(n_gold) * 4)  ]
+
+r_gold = tmm.TMM(633, 0, 's', [n_gold, n_substrate], d_opt)
+
+print('reflectivity of gold at 633nm wavelength = '+str(r_gold[0]))
 
 # Investigating different incoming angles
 
@@ -425,22 +296,178 @@ N_stack = 2 # Period of layers
 d1 = 50
 d2 = 50 # thicknesses of the two material layers
 
-n_stack, d_stack = stacklayers(N_stack, d1, d2, Ta2O5, MgF2)
+n_stack, d_stack = tmm.stacklayers(N_stack, 500, d1opt, d2opt, Ta2O5, MgF2)
 
 ang_range = np.arange(0, np.pi/2, 0.01)
 r_output = []
 t_output = []
-test= [] 
+angles= [] 
 
 for ang in ang_range:
-    r, t = TMM(fixed_wavelength, ang, polarisation, n_stack, d_stack)
+    r, t = tmm.TMM(fixed_wavelength, ang, polarisation, n_stack, d_stack)
     
     r_output.append(r)
     t_output.append(t)
-    test.append(ang)
+    angles.append(ang)
+    
+#Plotting transmission and reflection
+plt.figure()
+plt.scatter(angles, r_output, label='R coefficient')
+plt.xlabel("Angle of incidence (rad)")
+plt.ylabel("Reflectance/Transmission coefficient")
+plt.legend()
+plt.grid()
+
+plt.figure()
+plt.scatter(angles, t_output, label='T coefficient', color='r')
+plt.xlabel("Angle of incidence (rad)")
+plt.ylabel("Reflectance/Transmission coefficient")
+plt.legend()
+plt.grid()
+
+
+# Trying to find the stop band by varying wavelength
+# We use the optimal thicknesses for an incoming wavelength of 633nm
+# so this is where the peak should be observed.
+
+N_range = np.arange(1, 10, 2)
+incangle = 0
+
+for N in N_range:
+    r_values = []    
+    
+    for lam in visible_spec:
+        n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1opt, d2opt, Ta2O5, MgF2)
+        
+        r, t = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2)
+        r_values.append(r)
+    
+    
+    plt.plot(visible_spec, r_values, label='N = '+str(N))
+
+plt.xlabel('Wavelength (nm)')
+plt.ylabel('Reflection coefficient ')
+plt.title('Reflectivity spectrum as a function of wavelength for different N values')
+plt.legend(loc='best')
+plt.grid()
+        
+    
+# Plotting spectrum from N=14 (layers required to reach 99.99% reflectivity)
+plt.figure()
+
+N = 14
+r_values = []
+
+for lam in visible_spec:
+    n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1opt, d2opt, Ta2O5, MgF2)
+        
+    r, t = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2)
+    r_values.append(r)
+    
+    
+plt.plot(visible_spec, r_values, label='N = '+str(N))
+plt.xlabel('Wavelength (nm)')
+plt.ylabel('Reflection coefficient ')
+plt.legend(loc='best')
+plt.grid()
+        
+
+import matplotlib as mpl
+# Set the default color cycle
+mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["r", "k", "c"]) 
+    
+angles = [0 ,np.pi/6, np.pi/3]
+
+for ang in angles:
+    
+    r_values = []
+    
+    for lam in visible_spec:
+        n_stack2, d_stack2 = tmm.stacklayers(14, lam, d1opt, d2opt, Ta2O5, MgF2)
+        
+        r, t = tmm.TMM(lam, ang, polarisation, n_stack2, d_stack2)
+        r_values.append(r)
+    
+    if ang !=0:        
+        plt.plot(visible_spec, r_values, label='Incident Angle = \u03C0 /'+str(int(1/ang*(np.pi))))
+    else:
+        plt.plot(visible_spec, r_values, label='Incident Angle = 0', color='b', linestyle='--')
+    
+plt.xlabel('Wavelength (nm)')
+plt.ylabel('Reflection coefficient ')
+plt.title('Reflectivity spectrum as a function of wavelength for different incident angles')
+plt.legend(loc='best')
+plt.grid()
+    
+
+# Obtaining the plot for the extreme case, (as incident angle tends towards pi/2).
+# Stacks used 14
+mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["black", "dimgray", "r"]) 
+angle_tolim = [2 * np.pi/ 6, 11 * np.pi / 12, 99 * np.pi/ 200]
+
+for ang in angle_tolim:
+    r_values = []
+    for lam in visible_spec:
+        
+        n_stack2, d_stack2 = tmm.stacklayers(14, lam, d1opt, d2opt, Ta2O5, MgF2)
+            
+        r, t = tmm.TMM(lam, ang, polarisation, n_stack2, d_stack2)
+        r_values.append(r)
+        
+    plt.plot(visible_spec, r_values)
+    
+plt.xlabel('Wavelength (nm)')
+plt.ylabel('Reflection coefficient ')
+plt.title('Reflectivity as angle tends towards \u03C0 / 2 ')
+plt.legend(loc='best')
+plt.grid()
+
+# Investigating changing materials and the effect it has on spectral width
+
+N = 14
+r_values = []
+
+for lam in visible_spec:
+    n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1opt, d2opt, Ta2O5, MgF2)
+        
+    r, t = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2)
+    r_values.append(r)
+
+plt.plot(visible_spec, r_values)
+    
+
+def spectral_width(r_data):
+    '''
+    Parameters:
+        r_data::list
+            Reflection coefficient. (for increasing wavelengths.)
+    Returns:
+        Width::float
+            Spectral width at FWHM
+    '''
+    
+    
+    lower_index = r_data.index(max(r_data))
+    upper_index = r_data.index(max(r_data))
+
+    while r_data[upper_index] > 0.5:
+        upper_index+=1
+    while r_data[lower_index] > 0.5:
+        lower_index-=1
+    
+    width = visible_spec[upper_index] - visible_spec[lower_index]
+    
+    return width
     
     
     
+    
+    
+
+    
+    
+    
+
    
     
 
