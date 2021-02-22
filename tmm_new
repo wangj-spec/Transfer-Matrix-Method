@@ -99,13 +99,13 @@ def chifunction (k0, kx, polarisation, ncomplex1, ncomplex2):
 
     kz1 = cm.sqrt((ncomplex1 * k0)**2 - kx**2)
     kz2 = cm.sqrt((ncomplex2 * k0)**2 - kx**2)
-    
-    kz1 = np.real(kz1)
-    kz2 = np.real(kz2)
+
+   # kz1 = np.real(kz1)
+    #kz2 = np.real(kz2)
     
     if polarisation == "p":
 
-        alpha = (ncomplex2/ncomplex1)*np.sqrt(kz1/kz2)
+        alpha = (ncomplex2/ncomplex1) * np.sqrt(kz1/kz2)
         chip = (alpha + 1/alpha)/2
         chim = (alpha - 1/alpha)/2
 
@@ -149,11 +149,9 @@ def TMM(wavelength, angle, polarisation, ns, ds):
     
     for i in range(len(ds)): # ds should be one item shorter than ns, the final ns should be for the substrate
         n = ns[i]
-        
-        
         kz = cm.sqrt((n * k0) ** 2 - kx ** 2)
         
-        absorp_factor = np.real(np.exp(k0 * n * ds[i]))
+        absorp_factor = np.real(k0 * n * ds[i])
         #phase_factor = np.imag(np.exp(k0 * n * ds[i]))
         
         if i == 0: # setting incident medium to be air
@@ -164,7 +162,7 @@ def TMM(wavelength, angle, polarisation, ns, ds):
             n1 = ns[i-1]
             n2 = ns[i]
 
-        propagation = np.exp(complex(absorp_factor,(np.real(kz) * ds[i]))) # forward propagation
+        propagation = np.exp((1j * kz * ds[i])) # forward propagation
         chip, chim = chifunction(k0, kx, polarisation, n1, n2)
         T_i = [[chip , chim],[chim, chip]]
         P_i = [[propagation, 0],[0, np.conj(propagation)]] # complex conjugate for backward propagation
