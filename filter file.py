@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Thu Feb 11 11:22:05 2021
@@ -352,22 +353,30 @@ plt.legend(loc='best')
 plt.grid()
         
     
-# Plotting spectrum from N=14 (layers required to reach 99.99% reflectivity)
+# Plotting spectrum from N=14 (layers required to reach 99.99% reflectivity).
+# Can also be used to investigate band-width change for different materials by
+# changing "material 1 and material 2)
 plt.figure()
 
-N = 14
+N = 12
 r_values = []
 
+layer1 = Ta2O5
+layer2 = MgF2
+
+# Ensuring the thicknesses are optimal for reflectivity 
+d1 =lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *layer1)))
+d2 = lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *layer2)))
+
 for lam in visible_spec:
-    n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1opt, d2opt, Ta2O5, MgF2)
+    n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1, d2, layer1, layer2)
         
     r, t = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2)
     r_values.append(r)
     
-    
 plt.plot(visible_spec, r_values, label='N = '+str(N))
 plt.xlabel('Wavelength (nm)')
-plt.ylabel('Reflection coefficient ')
+plt.ylabel('Reflection coefficient')
 plt.legend(loc='best')
 plt.grid()
         
@@ -424,18 +433,6 @@ plt.grid()
 
 # Investigating changing materials and the effect it has on spectral width
 
-N = 14
-r_values = []
-
-for lam in visible_spec:
-    n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1opt, d2opt, Ta2O5, MgF2)
-        
-    r, t = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2)
-    r_values.append(r)
-
-plt.plot(visible_spec, r_values)
-    
-
 def spectral_width(r_data):
     '''
     Parameters:
@@ -459,6 +456,75 @@ def spectral_width(r_data):
     
     return width
     
+    
+# Using a stack with different materials (SiO2 with MgF2, TiO2 with Ta2O5)
+mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["r", "k", "c"]) 
+
+TiO2 = np.loadtxt("Devore-o.csv", skiprows=1, unpack=True, delimiter=",")
+SiO2 = np.loadtxt("Malitson.csv", skiprows=1, unpack=True, delimiter=",")
+
+TiO2[0] = TiO2[0] * 1000
+SiO2[0] = SiO2[0] * 1000
+
+dopt_TiO2 = lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *TiO2)))
+dopt_SiO2 = lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *SiO2)))
+
+N = 14
+
+# TiO2 combined with Ta2O5 (both high refractive indices) and TiO2 with SiO2 
+# (very similar refractive indices as materials we already used)
+plt.figure()
+
+r_values = []
+r_values2 = []
+
+for lam in visible_spec:
+    n_stack, d_stack = tmm.stacklayers(N, lam, d1opt, dopt_TiO2, Ta2O5, TiO2)
+    r, t = tmm.TMM(lam, incangle, polarisation, n_stack, d_stack)
+    r_values.append(r)
+    
+    n_stack2, d_stack2 = tmm.stacklayers(N, lam, dopt_TiO2, dopt_SiO2, TiO2, SiO2)
+    r2, t2 = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2)
+    r_values2.append(r2)
+    
+
+plt.plot(visible_spec, r_values, label='N=14 using TiO2 and Ta2O5')
+plt.plot(visible_spec, r_values2, label='N =14 using TiO2 and SiO2')
+plt.xlabel('Wavelength (nm)')
+plt.ylabel('Reflection coefficient ')
+plt.grid()
+plt.legend(loc='upper right')
+
+# MgF2 and SiO2 (both lower refractive indices). Many more layers are required
+# to achieve high reflectivity, and the spectral width is much lower.
+
+N= 40
+r_values3 = []
+
+for lam in visible_spec:
+    n_stack2, d_stack2 = tmm.stacklayers(N, lam, dopt_SiO2, d2opt, SiO2, MgF2)
+        
+    r, t = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2)
+    r_values3.append(r)
+
+plt.figure()
+plt.plot(visible_spec, r_values3, label='N=40 using SiO2 and MgF2', color='r')
+plt.xlabel('Wavelength (nm)')
+plt.ylabel('Reflection coefficient')
+plt.grid()
+plt.legend()
+    
+print('spectral width for SiO2 and MgF2 with N=35 is '+str(spectral_width(r_values3))+' nm')
+print('spectral width for TiO2 with SiO2 with N=14 is '+str(spectral_width(r_values2))+' nm')
+print('spectral width for TiO2 and Ta2O5 with N=14 is '+str(spectral_width(r_values))+' nm')
+      
+
+
+
+
+
+
+
     
     
     
