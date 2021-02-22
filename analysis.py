@@ -6,7 +6,7 @@ Created on Thu Feb 11 11:22:05 2021
 """
 
 import numpy as np
-import transfermatrix as tmm
+import tmm_new as tmm
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from mpl_toolkits.mplot3d import Axes3D
@@ -18,12 +18,12 @@ plt.style.use('ggplot')
 Ta2O5 = np.loadtxt("Ta2O5.csv", skiprows=1, unpack=True, delimiter=",")
 MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
 BK7 = np.loadtxt("BK7.txt", skiprows=1, unpack=True)
-Au = np.loadtxt('RefractiveIndexINFO.csv', skiprows = 1, delimiter = ',', unpack = True)
+Au = np.loadtxt('Au.txt', skiprows = 1, unpack = True)
 
 Ta2O5[0] = Ta2O5[0] * 1000
 
 # Converting from micrometers to nanometers
-Au[0] = Au[0] * 1000
+#Au[0] = Au[0] * 1000
 
 wavelength, n, k= np.loadtxt("BK7.txt", skiprows = 1, unpack = True)
 wavelength = np.array(wavelength) # to avoid problems with curvefit make everything into arrays
@@ -316,13 +316,8 @@ plt.figure()
 plt.scatter(angles, r_output, label='R coefficient')
 plt.xlabel("Angle of incidence (rad)")
 plt.ylabel("Reflectance/Transmission coefficient")
-plt.legend()
 plt.grid()
-
-plt.figure()
 plt.scatter(angles, t_output, label='T coefficient', color='r')
-plt.xlabel("Angle of incidence (rad)")
-plt.ylabel("Reflectance/Transmission coefficient")
 plt.legend()
 plt.grid()
 
@@ -330,6 +325,7 @@ plt.grid()
 # Trying to find the stop band by varying wavelength
 # We use the optimal thicknesses for an incoming wavelength of 633nm
 # so this is where the peak should be observed.
+plt.figure()
 
 N_range = np.arange(1, 10, 2)
 incangle = 0
@@ -380,6 +376,7 @@ plt.ylabel('Reflection coefficient')
 plt.legend(loc='best')
 plt.grid()
         
+plt.figure()
 
 import matplotlib as mpl
 # Set the default color cycle
@@ -412,7 +409,9 @@ plt.grid()
 # Obtaining the plot for the extreme case, (as incident angle tends towards pi/2).
 # Stacks used 14
 mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["black", "dimgray", "r"]) 
-angle_tolim = [2 * np.pi/ 6, 11 * np.pi / 12, 99 * np.pi/ 200]
+angle_tolim = [2 * np.pi/ 6, 11 * np.pi / 24, 99 * np.pi/ 200]
+
+plt.figure()
 
 for ang in angle_tolim:
     r_values = []
@@ -423,7 +422,7 @@ for ang in angle_tolim:
         r, t = tmm.TMM(lam, ang, polarisation, n_stack2, d_stack2)
         r_values.append(r)
         
-    plt.plot(visible_spec, r_values)
+    plt.plot(visible_spec, r_values, label = "Angle of " + str("{:.3}".format(ang)))
     
 plt.xlabel('Wavelength (nm)')
 plt.ylabel('Reflection coefficient ')
@@ -465,9 +464,16 @@ SiO2 = np.loadtxt("Malitson.csv", skiprows=1, unpack=True, delimiter=",")
 
 TiO2[0] = TiO2[0] * 1000
 SiO2[0] = SiO2[0] * 1000
+TiO2 = list(TiO2)
+SiO2 = list(SiO2)
+Timgs = list(np.zeros(len(TiO2[0])))
+Simgs = list(np.zeros(len(SiO2[0])))
+TiO2.append(Timgs)
+SiO2.append(Simgs)
 
 dopt_TiO2 = lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *TiO2)))
 dopt_SiO2 = lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *SiO2)))
+
 
 N = 14
 
@@ -540,7 +546,8 @@ for ang in angles:
     
     rs, ts = tmm.TMM(inc_lam, ang, 's', n_list, d_gold)
     r_s.append(rs)
-    
+
+plt.figure()
 plt.plot(angles, r_p, label='p polarisation')
 plt.plot(angles,r_s, label = 's polarisation')
 
@@ -550,7 +557,43 @@ plt.vlines(critical_ang,0, 1, color='r', label='critical angle')
 plt.grid()
 plt.legend()
 
-    #%%
+#%%
+# for wavelength of 633nm, phase response of reflected wave with both gold and dbr
+n_gold = tmm.complx_n(633, *Au)
+n_substrate = tmm.complx_n(633, *BK7)
+dG = [633 / (np.real(n_gold) * 4)]
+
+nT = tmm.complx_n(fixed_wavelength,*Ta2O5)
+nM = tmm.complx_n(fixed_wavelength,*MgF2)
+dT = 633/(np.real(nT)*4*np.cos(incangle))
+dM = 633/(np.real(nM)*4*np.cos(incangle))
+
+
+n_stack, d_stack = tmm.stacklayers(N, 633, dM, dT, MgF2, Ta2O5, substrate_n = n_substrate)
+
+var_wavelength = np.arange(553,741)
+rsphases = []
+rgphases = []
+for i in var_wavelength:
+    n_stack, d_stack = tmm.stacklayers(14, i, dM, dT, MgF2, Ta2O5, substrate_n=n_substrate)
+    rstack, tstack = tmm.TMM(i, 0, "s", n_stack,d_stack, squared = False)
+    rgold, tgold = tmm.TMM(i, 0, "s", [n_gold,n_substrate],dG, squared = False)
+    rsphase = np.angle(rstack)
+    rgphase = np.angle(rgold)
+    rsphases.append(rsphase)
+    rgphases.append(rgphase)
+
+plt.figure()
+plt.plot(var_wavelength,rsphases, label = "Phase response of DBR")
+plt.plot(var_wavelength,rgphases, label = "Phase response of gold")
+plt.legend()
+plt.xlabel("Wavelength in nm")
+plt.ylabel("Phase of reflected wave in rad")
+plt.yticks([-np.pi, -np.pi/2, 0, np.pi/2, np.pi],
+          [r'$-\pi$', r'$-\pi/2$', r'$0$', r'$+\pi/2$', r'$+\pi$'])
+plt.show()
+
+#%%
 #Introducing a defect to see what happens
 #expansion of a central cavity
 #for DBR of Ta2O5, MgF2
@@ -565,7 +608,7 @@ dcavs = np.arange(0, 200, 1)
 
 n_stack, d_stack = tmm.stacklayers(14, 633, dM, dT, MgF2, Ta2O5, substrate_n = n_substrate)
 
-var_wavelength = np.arange(500,900,0.1)
+var_wavelength = np.arange(500,900,10)
 r_output = []
 animdata = []
 for dcav in dcavs:
