@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.cm as cm
+from matplotlib.animation import FuncAnimation
+plt.style.use('ggplot')
 
 # Importing different materials
 Ta2O5 = np.loadtxt("Ta2O5.csv", skiprows=1, unpack=True, delimiter=",")
@@ -548,7 +550,56 @@ plt.vlines(critical_ang,0, 1, color='r', label='critical angle')
 plt.grid()
 plt.legend()
 
+    #%%
+#Introducing a defect to see what happens
+#expansion of a central cavity
+#for DBR of Ta2O5, MgF2
+#central optical cavity of air to begin
+nT = tmm.complx_n(fixed_wavelength,*Ta2O5)
+nM = tmm.complx_n(fixed_wavelength,*MgF2)
+dT = 633/(np.real(nT)*4*np.cos(incangle))
+dM = 633/(np.real(nM)*4*np.cos(incangle))
 
+ncav = complex(1+0j)
+dcavs = np.arange(0, 200, 1)
+
+n_stack, d_stack = tmm.stacklayers(14, 633, dM, dT, MgF2, Ta2O5, substrate_n = n_substrate)
+
+var_wavelength = np.arange(500,900,0.1)
+r_output = []
+animdata = []
+for dcav in dcavs:
+    r_output = []
+    for i in var_wavelength:
+        n_stack, d_stack = tmm.stacklayers(14, i, dM, dT, MgF2, Ta2O5, substrate_n=n_substrate)
+        n_stack1 = n_stack.copy()
+        n_stack1.pop()
+        n_stack1.append(ncav)
+        n_stack1.extend(n_stack)
+        d_stack1 = d_stack.copy()
+        d_stack1.append(dcav)
+        d_stack1.extend(d_stack)
+        rstack, tstack = tmm.TMM(i, 0, "s", n_stack1,d_stack1 )
+        r_output.append(rstack)
+    print(dcav)
+#    im = plt.figure()
+ #   plt.plot(var_wavelength, r_output)
+  #  plt.title("Cavity of air at " + str(dcav) + "nm thickness")
+   # plt.xlabel('wavelength (nm)')
+    #plt.ylabel("Reflectance")
+    animdata.append(r_output)
+
+fig, ax = plt.subplots(figsize=(5, 3))
+ax.set(xlim=(500,900), ylim=(0,1.1))
+line = ax.plot(var_wavelength, animdata[0], color='k', lw=2)[0]
+def animate(i):
+    line.set_ydata(animdata[i])
+anim = FuncAnimation(
+fig, animate, interval=100, frames=len(dcavs) - 1)
+
+plt.draw()
+plt.show()
+anim.save('filename.gif', writer='imagemagick')
 
 
 
