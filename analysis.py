@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Thu Feb 11 11:22:05 2021
@@ -251,7 +250,6 @@ plt.grid()
         
  
 #%%
-import transfermatrix as tmm
 
 fixed_wavelength = 633
 incangle = 0
@@ -358,15 +356,15 @@ plt.grid()
 # changing "material 1 and material 2)
 plt.figure()
 
-N = 12
+N = 2
 r_values = []
 
 layer1 = Ta2O5
 layer2 = MgF2
 
 # Ensuring the thicknesses are optimal for reflectivity 
-d1 =lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *layer1)))
-d2 = lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *layer2)))
+d1 =lam_opt / (2 * np.real(tmm.complx_n(lam_opt, *layer1)))
+d2 = lam_opt / (2 * np.real(tmm.complx_n(lam_opt, *layer2)))
 
 for lam in visible_spec:
     n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1, d2, layer1, layer2)
@@ -513,7 +511,57 @@ plt.xlabel('Wavelength (nm)')
 plt.ylabel('Reflection coefficient')
 plt.grid()
 plt.legend()
+#plt.savefig("High resoltion.png",dpi=300)
     
 print('spectral width for SiO2 and MgF2 with N=35 is '+str(spectral_width(r_values3))+' nm')
 print('spectral width for TiO2 with SiO2 with N=14 is '+str(spectral_width(r_values2))+' nm')
 print('spectral width for TiO2 and Ta2O5 with N=14 is '+str(spectral_width(r_values))+' nm')
+      
+
+#%%
+mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["b", "k", "r"]) 
+# comparison between p (TM) polarisation and s 
+inc_lam = 633
+d_gold = [50]
+critical_ang = np.arcsin(1/np.real(tmm.complx_n(inc_lam, *BK7)))
+
+n_list = [tmm.complx_n(inc_lam, *Au), tmm.complx_n(inc_lam, *BK7)]
+
+angles = np.arange(0, np.pi/2, 0.01)
+
+r_p = []
+r_s = []
+
+for ang in angles:
+    rp, tp = tmm.TMM(inc_lam, ang, 'p', n_list, d_gold)
+    r_p.append(rp)
+    
+    rs, ts = tmm.TMM(inc_lam, ang, 's', n_list, d_gold)
+    r_s.append(rs)
+    
+plt.plot(angles, r_p, label='p polarisation')
+plt.plot(angles,r_s, label = 's polarisation')
+
+   
+plt.vlines(critical_ang,0, 1, color='r', label='critical angle')
+
+plt.grid()
+plt.legend()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
