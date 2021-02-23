@@ -18,7 +18,8 @@ def linterpol(wavelength, wavedata, indexdata):
         indexdata:: numpy.array
             Corresponding refractive index values
     Returns:
-        Interpolated refractive index value for given wavelength.
+        Interpol::float
+             Interpolated refractive index value for given wavelength.
     '''
     grad = 0 #initialise grad
     j = 0 #initialise j
