@@ -12,7 +12,7 @@ from scipy.optimize import curve_fit
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.cm as cm
 from matplotlib.animation import FuncAnimation
-plt.style.use('ggplot')
+import matplotlib as mpl
 
 # Importing different materials
 Ta2O5 = np.loadtxt("Ta2O5.csv", skiprows=1, unpack=True, delimiter=",")
@@ -21,9 +21,6 @@ BK7 = np.loadtxt("BK7.txt", skiprows=1, unpack=True)
 Au = np.loadtxt('Au.txt', skiprows = 1, unpack = True)
 
 Ta2O5[0] = Ta2O5[0] * 1000
-
-# Converting from micrometers to nanometers
-#Au[0] = Au[0] * 1000
 
 wavelength, n, k= np.loadtxt("BK7.txt", skiprows = 1, unpack = True)
 wavelength = np.array(wavelength) # to avoid problems with curvefit make everything into arrays
@@ -156,11 +153,9 @@ print('Maximum t+r value = '+str(max(tot_amp))+', minimum value ='+str(min(tot_a
       'point error.')
 
 
-
  
 #%%
-# Absorption for a layer of gold
-    
+# Absorption for a layer of gold    
 # Investigating for normal incidience (angle = 0)
 
 ang = 0 
@@ -176,7 +171,6 @@ for lam in visible_spec:
         
         n1 = tmm.complx_n(lam, *Au) # refractive index of gold
         n2 = tmm.complx_n(lam, *BK7) # refractive index of BK7 glass
-        print(type(n1))
         
         ns = [n1, n2]
         ds= [d_val]
@@ -252,20 +246,21 @@ plt.grid()
         
  
 #%%
-
-fixed_wavelength = 633
+import tmm_new as tmm
+lam_opt = 600
 incangle = 0
-polarisation = "s"
-
+polarisation = "p"
 # Finding the number of periods required to reach 99.99% reflectivity, d1=d2=50nm,
 # We used materials Ta2O5 and MgF2 with air substrate.
 
-lam_opt = 633
 
-d1opt =lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *Ta2O5)))
-d2opt = lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *MgF2)))
 
-N, r_current, plot = tmm.find_N(0.9999, fixed_wavelength,  d1opt, d2opt, incangle, polarisation, Ta2O5, MgF2)
+d1opt = np.real(lam_opt / (4 * tmm.complx_n(lam_opt, *Ta2O5)))
+d2opt = np.real(lam_opt / (4 * tmm.complx_n(lam_opt, *MgF2)))
+
+N, r_current, plot = tmm.find_N(0.9999, lam_opt,  d1opt, d2opt, incangle, 'p', Ta2O5, MgF2)
+
+#%%
 nplot = []
 rplot = []
 
@@ -354,15 +349,15 @@ plt.grid()
 # changing "material 1 and material 2)
 plt.figure()
 
-N = 2
+N = 14
 r_values = []
 
 layer1 = Ta2O5
 layer2 = MgF2
 
 # Ensuring the thicknesses are optimal for reflectivity 
-d1 =lam_opt / (2 * np.real(tmm.complx_n(lam_opt, *layer1)))
-d2 = lam_opt / (2 * np.real(tmm.complx_n(lam_opt, *layer2)))
+d1 =lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *layer1)))
+d2 = lam_opt / (4 * np.real(tmm.complx_n(lam_opt, *layer2)))
 
 for lam in visible_spec:
     n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1, d2, layer1, layer2)
@@ -430,6 +425,7 @@ plt.title('Reflectivity as angle tends towards \u03C0 / 2 ')
 plt.legend(loc='best')
 plt.grid()
 
+#%%
 # Investigating changing materials and the effect it has on spectral width
 
 def spectral_width(r_data):
@@ -527,24 +523,26 @@ print('spectral width for TiO2 and Ta2O5 with N=14 is '+str(spectral_width(r_val
       
 
 #%%
+import tmm_new as tmm
 mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["b", "k", "r"]) 
 # comparison between p (TM) polarisation and s 
 inc_lam = 633
+
 d_gold = [50]
 critical_ang = np.arcsin(1/np.real(tmm.complx_n(inc_lam, *BK7)))
 
-n_list = [tmm.complx_n(inc_lam, *Au), tmm.complx_n(inc_lam, *BK7)]
+n_list = [tmm.complx_n(inc_lam, *Au), 1.003]
 
-angles = np.arange(0, np.pi/2, 0.01)
+angles = np.arange(0, np.pi/2, 0.001)
 
 r_p = []
 r_s = []
 
 for ang in angles:
-    rp, tp = tmm.TMM(inc_lam, ang, 'p', n_list, d_gold)
+    rp, tp = tmm.TMM(inc_lam, ang, 'p', n_list, d_gold, glass_inc = True)
     r_p.append(rp)
     
-    rs, ts = tmm.TMM(inc_lam, ang, 's', n_list, d_gold)
+    rs, ts = tmm.TMM(inc_lam, ang, 's', n_list, d_gold, glass_inc = True)
     r_s.append(rs)
 
 plt.figure()
@@ -556,6 +554,9 @@ plt.vlines(critical_ang,0, 1, color='r', label='critical angle')
 
 plt.grid()
 plt.legend()
+
+tmm.TMM(633, 0, 'p', n_list, [50], glass_inc = True)
+
 
 #%%
 # for wavelength of 633nm, phase response of reflected wave with both gold and dbr
@@ -635,6 +636,7 @@ for dcav in dcavs:
 fig, ax = plt.subplots(figsize=(5, 3))
 ax.set(xlim=(500,900), ylim=(0,1.1))
 line = ax.plot(var_wavelength, animdata[0], color='k', lw=2)[0]
+
 def animate(i):
     line.set_ydata(animdata[i])
 anim = FuncAnimation(
