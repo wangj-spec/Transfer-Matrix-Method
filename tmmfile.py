@@ -118,7 +118,7 @@ def chifunction(k0, kx, polarisation, ncomplex1, ncomplex2):
     return chip, chim
 
 
-def TMM(wavelength, angle, polarisation, ns, ds, squared=True, glass_inc=False, material=[]):
+def TMM(wavelength, angle, polarisation, ns, ds, squared=True, glass_inc=False, material=[],absorption = False):
     '''
     Parameters:
         wavelength:: float
@@ -137,6 +137,8 @@ def TMM(wavelength, angle, polarisation, ns, ds, squared=True, glass_inc=False, 
             If True, simulates E-M wave incident from a material, otherwise assumes incident wave from air
         material::  2d array of shape [3, n]
             The data of the material if glass_inc is True, of the form [wavelength, n, k]
+        absorption:: boolean
+            If True, returns the power absorption value, defined by A + T + R = 1
     Returns:
         r:: float
             Reflection coefficient.
@@ -204,12 +206,21 @@ def TMM(wavelength, angle, polarisation, ns, ds, squared=True, glass_inc=False, 
     r2 = abs(r) ** 2
     t2 = abs(t) ** 2  # want the transmittance and reflectance
 
+    if absorption == True:
+        a = 1 - r2 - t2
+
     if squared == True:  # returns transmittance and reflectance for power
-        return r2, t2
+        if absorption == True:
+            return r2, t2, a
+        else:
+            return r2, t2
+
 
     elif squared == False:
-        return r, t  # returns fresnel coefficients of r, t for electric field
-
+        if absorption == True:
+            return r, t, a
+        else:
+            return r, t  # returns fresnel coefficients of r, t for electric field
 
 def stacklayers(N, wavelength, d1, d2, material1, material2, substrate_n=1):
     """
