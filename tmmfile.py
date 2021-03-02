@@ -301,16 +301,16 @@ def find_N(r_val, wavelength, d1, d2, angle, polarisation, material1, material2)
     while r_current < r_val:
 
         ns, ds = stacklayers(N, wavelength, d1, d2, material1, material2)
-        r_current = TMM(wavelength, angle, polarisation, ns, ds, squared=True)[0]
+        r_current, t, a = TMM(wavelength, angle, polarisation, ns, ds, squared=True, absorption = True)
         print(r_current)
-        plot.append([N, r_current])
+        plot.append([N, r_current, a])
         N += 1
 
         if N > 50:
             print("This is unlikely to reach the value within the bit integer limit")
             break
 
-    plot.append([N, r_current])
+    plot.append([N, r_current, a])
 
     return N, r_current, plot
 
