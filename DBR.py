@@ -46,16 +46,18 @@ d2opt = lam_opt / (4 * (tmm.complx_n(lam_opt, *MgF2)))
 N, r_current, plot = tmm.find_N(0.9999, fixed_wavelength, d1opt, d2opt, incangle, polarisation, Ta2O5, MgF2)
 nplot = []
 rplot = []
-
+aplot = []
 for i in plot:
     nplot.append(i[0])
     rplot.append(i[1])
-
+    aplot.append(i[2})
 im = plt.figure()
 plt.xlabel("Number of stacks")
-plt.ylabel("Reflectance")
+plt.ylabel("Reflectance and absorption ratio")
 plt.title('Number of stacks (each stack has 2 layers) required to reach 99.99% reflectivity.')
-plt.scatter(nplot, rplot)
+plt.plot(nplot, rplot, label = "reflection")
+plt.plot(nplot, aplot, label = "absorption")
+plt.label
 plt.grid()
 plt.show()
 
