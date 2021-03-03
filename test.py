@@ -77,6 +77,30 @@ d = np.arange(0, 160, 0.25)
 incangle = np.arange(0, 1, 0.01)
 incomingpol = "p"
 
+plt.figure()
+#To see the reflectance varying with distance
+r_values = []
+
+test = np.arange(0, 2, 0.01)
+n1 = tmm.complx_n(incominglam, *MgF2)
+n2 = tmm.complx_n(incominglam, *BK7)
+ns = [n1, n2]
+
+for i in test:
+    dm = i*np.real(incominglam / (2 * (tmm.complx_n(incominglam, *MgF2))))
+    ds = [dm]
+    r, t = tmm.TMM(incominglam, 0, incomingpol, ns, ds)
+    r_values.append(r)
+
+plt.plot(test, r_values)
+
+plt.xlabel('Phase due to width of layer (*pi)')
+plt.ylabel('Reflection coefficient ')
+plt.title('Reflectivity spectrum as a function of phase')
+plt.legend(loc='best')
+plt.grid()
+plt.show()
+
 output = []
 analytic = []
 tot_amp = []
