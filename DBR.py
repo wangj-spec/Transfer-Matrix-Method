@@ -50,7 +50,7 @@ aplot = []
 for i in plot:
     nplot.append(i[0])
     rplot.append(i[1])
-    aplot.append(i[2})
+    aplot.append(i[2])
 im = plt.figure()
 plt.xlabel("Number of stacks")
 plt.ylabel("Reflectance and absorption ratio")
