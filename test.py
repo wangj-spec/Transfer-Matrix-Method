@@ -86,7 +86,8 @@ for i in incangle:
 
         n1 = tmm.complx_n(incominglam, *MgF2)
         n2 = tmm.complx_n(incominglam, *BK7)
-
+        n1 = complex(np.real(n1), 0)
+        n2 = comples(np.real(n2), 0)
         ns = [n1, n2]
         ds = [j]
 
