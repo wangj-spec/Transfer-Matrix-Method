@@ -99,7 +99,9 @@ for i in incangle:
         tot_amp.append(r + t)
 
     # Calculating the theoretical optimal parameters for each angle
-    d2 = incominglam / (np.real(n1) * 4 * np.cos(i))  # the analytical formula for d given the phase
+    ko = 2*np.pi/incominglam
+    kx = ko*np.sin(i)
+    d2 = incominglam / (np.real(n1) * 4 * np.real(n1)*ko/np.sqrt((np.real(n)*ko)**2 - np.kx**2))  # the analytical formula for d given the phase
     ds = [d2]
 
     r2, t2 = tmm.TMM(incominglam, i, incomingpol, ns, ds)
