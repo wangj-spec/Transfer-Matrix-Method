@@ -199,7 +199,7 @@ plt.figure()
 
 N = 14
 r_values = []
-
+a_values = []
 layer1 = Ta2O5
 layer2 = MgF2
 
@@ -210,12 +210,14 @@ d2 = lam_opt / (4 * (tmm.complx_n(lam_opt, *layer2)))
 for lam in visible_spec:
     n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1, d2, layer1, layer2)
 
-    r, t = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2)
+    r, t, a  = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2, absorption = True)
     r_values.append(r)
-
-plt.plot(visible_spec, r_values, label='N = ' + str(N))
+    a_values.append(a)
+    
+plt.plot(visible_spec, r_values, label= reflectance)
+plt.plot(visible_spec, a_values, label= absorption)
 plt.xlabel('Wavelength (nm)')
-plt.ylabel('Reflection coefficient')
+plt.ylabel('Reflection and absorption ratio')
 plt.title('Reflectivity spectrum as a function of wavelength for N=14')
 plt.legend(loc='best')
 plt.grid()
