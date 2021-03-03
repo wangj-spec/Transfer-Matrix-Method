@@ -1,34 +1,22 @@
+"""
+Created on Wed Mar  3 00:43:27 2021
+
+@author: leonardobossi1
+"""
+
 
 
 import numpy as np
 import tmmfile as tmm
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib as mpl
-from matplotlib.animation import FuncAnimation
-plt.style.use('ggplot')
 
 # Importing different materials
 MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
 BK7 = np.loadtxt("BK7.txt", skiprows=1, unpack=True)
 Au = np.loadtxt('Au.txt', skiprows = 1, unpack = True)
 Ta2O5 = np.loadtxt("Ta2O5.csv", skiprows=1, unpack=True, delimiter=",")
-TiO2 = np.loadtxt("Devore-o.csv", skiprows=1, unpack=True, delimiter=",")
-SiO2 = np.loadtxt("Malitson.csv", skiprows=1, unpack=True, delimiter=",")
 
-# Converting from micrometers to nanometers
-Ta2O5[0] = Ta2O5[0] * 1000
-TiO2[0] = TiO2[0] * 1000
-SiO2[0] = SiO2[0] * 1000
-
-# Adding a k column to TiO2 and SiO2 so they fit the expected format
-TiO2 = list(TiO2)
-SiO2 = list(SiO2)
-Timgs = list(np.zeros(len(TiO2[0])))
-Simgs = list(np.zeros(len(SiO2[0])))
-TiO2.append(Timgs)
-SiO2.append(Simgs)
 material = MgF2
 
 mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["b", "k", "r"])
@@ -57,6 +45,8 @@ for ang in angles:
 plt.figure()
 plt.plot(angles, r_p, label='p polarisation')
 plt.plot(angles, r_s, label='s polarisation')
+plt.xlabel('Angle (rad)')
+plt.ylabel('Reflectance')
 plt.title("Total Internal Reflection from MgF2 to air")
 
 plt.vlines(critical_ang, 0, 1, color='r', label='critical angle')
@@ -90,6 +80,8 @@ for ang in angles:
 plt.figure()
 plt.plot(angles, r_p, label='p polarisation')
 plt.plot(angles, r_s, label='s polarisation')
+plt.xlabel('Angle (rad)')
+plt.ylabel('Reflectance')
 plt.title("Finding the Surface Plasmon Polariton")
 plt.vlines(critical_ang, 0, 1, color='r', label='critical angle')
 
