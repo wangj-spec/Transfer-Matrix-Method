@@ -98,32 +98,35 @@ for i in incangle:
         tot_amp.append(r + t)
 
     # Calculating the theoretical optimal parameters for each angle
-    ko = 2*np.pi/incominglam
-    kx = ko*np.sin(i)
-    d2 = incominglam / (np.real(n1) * 4 * np.real(n1)*ko/np.sqrt((np.real(n)*ko)**2 - kx**2))  # the analytical formula for d given the phase
-    ds = [d2]
+        ko = 2 * np.pi/incominglam
+        kx = ko * np.sin(i)
+        
+        d2 = np.pi/ (2 * np.sqrt((np.real(n1)*ko)**2 - kx**2))  # the analytical formula for d given the phase
+        #print(np.shape(d2))
+        ds = [d2]
 
-    r2, t2 = tmm.TMM(incominglam, i, incomingpol, ns, ds)
-    analytic.append((i, d2, r2))
+        r2, t2 = tmm.TMM(incominglam, i, incomingpol, ns, ds)
+        analytic.append((i, d2, r2))
 
 xcoord = []
 ycoord = []
 zcoord = []
 
 for i in output:  # Output consists of angle value, thickness value, and reflection coefficient
-
     xcoord.append(i[0])
     ycoord.append(i[1])
     zcoord.append(i[2])
 
 
 # Creating the array of analytical values expected
-xcoord2, ycoord2, zcoord2 = [], [], []
+xcoord2 = []
+ycoord2 = [] 
+zcoord2 = []
 
-for i in analytic:
-    xcoord2.append(i[0])
-    ycoord2.append(i[1])
-    zcoord2.append(i[2])
+for val in analytic:
+    xcoord2.append(val[0])
+    ycoord2.append(val[1])
+    zcoord2.append(val[2])
 
 ycoords = ycoord[::10]
 xcoords = xcoord[::10]
