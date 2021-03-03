@@ -1,16 +1,18 @@
+"""
+Created on Wed Mar  3 00:43:27 2021
 
+@author: leonardobossi1
+"""
 import numpy as np
 import tmmfile as tmm
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib as mpl
 from matplotlib.animation import FuncAnimation
-plt.style.use('ggplot')
+
 # Set the default color cycle
 mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["r", "k", "c"])
 
-# Importing different materials
+# Importing data for refractive indices of different materials
 MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
 BK7 = np.loadtxt("BK7.txt", skiprows=1, unpack=True)
 Au = np.loadtxt('Au.txt', skiprows = 1, unpack = True)
@@ -40,26 +42,36 @@ polarisation = "s"
 visible_spec = np.arange(500, 900, 1)
 lam_opt = 633
 
-d1opt = lam_opt / (4 * (tmm.complx_n(lam_opt, *Ta2O5)))
-d2opt = lam_opt / (4 * (tmm.complx_n(lam_opt, *MgF2)))
+# Defining the optimal thicknesses for maximum reflection 
+d1opt = np.real(lam_opt / (4 * (tmm.complx_n(lam_opt, *Ta2O5))))
+d2opt = np.real(lam_opt / (4 * (tmm.complx_n(lam_opt, *MgF2))))
 
 N, r_current, plot = tmm.find_N(0.9999, fixed_wavelength, d1opt, d2opt, incangle, polarisation, Ta2O5, MgF2)
 nplot = []
 rplot = []
 aplot = []
+
 for i in plot:
     nplot.append(i[0])
     rplot.append(i[1])
     aplot.append(i[2])
-im = plt.figure()
+                   
+plt.figure()
 plt.xlabel("Number of stacks")
 plt.ylabel("Reflectance and absorption ratio")
 plt.title('Number of stacks (each stack has 2 layers) required to reach 99.99% reflectivity.')
-plt.plot(nplot, rplot, label = "reflection")
-plt.plot(nplot, aplot, label = "absorption")
-plt.label
+plt.plot(nplot, rplot, label = "reflection", color='k')
 plt.grid()
-plt.show()
+plt.legend()
+
+# Plotting absorption
+plt.figure()
+plt.plot(nplot, aplot, label = "absorption")
+plt.xlabel("Number of stacks")
+plt.ylabel("Absorption ratio")
+plt.title('Absorption in the stack preventing 99.99% reflectivity')
+plt.grid()
+plt.legend()
 
 # Finding the reflectivity of gold at wavelength = 633 nm (task 12)
 n_gold = tmm.complx_n(633, *Au)
@@ -70,6 +82,7 @@ r_gold = tmm.TMM(633, 0, 's', [n_gold, n_substrate], d_opt)
 
 print('reflectivity of gold at 633nm wavelength = ' + str(r_gold[0]))
 
+#%%
 # Investigating different incoming angles
 
 # Creating a stack
@@ -96,65 +109,15 @@ plt.figure()
 plt.scatter(angles, r_output, label='R coefficient')
 plt.xlabel("Angle of incidence (rad)")
 plt.ylabel("Reflectance/Transmission coefficient")
-plt.grid()
-plt.scatter(angles, t_output, label='T coefficient', color='r')
+plt.scatter(angles, t_output, label='T coefficient')
+plt.title('R,T as a function of incident angle ' \
+          ' for 4 layers of Ta2O5 and MgF2 with d=50nm')
 plt.legend()
 plt.grid()
 
-# Trying to find the stop band by varying wavelength
-# We use the optimal thicknesses for an incoming wavelength of 633nm
-# so this is where the peak should be observed.
-plt.figure()
-
-N_range = np.arange(1, 10, 2)
-incangle = 0
-
-for N in N_range:
-    r_values = []
-
-    for lam in visible_spec:
-        n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1opt, d2opt, Ta2O5, MgF2)
-
-        r, t = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2)
-        r_values.append(r)
-
-    plt.plot(visible_spec, r_values, label='N = ' + str(N))
-
-plt.xlabel('Wavelength (nm)')
-plt.ylabel('Reflection coefficient ')
-plt.title('Reflectivity spectrum as a function of wavelength for different N values')
-plt.legend(loc='best')
-plt.grid()
-
-# Plotting spectrum from N=14 (layers required to reach 99.99% reflectivity).
-# Can also be used to investigate band-width change for different materials by
-# changing "material 1 and material 2)
-plt.figure()
-
-N = 2
-r_values = []
-
-layer1 = Ta2O5
-layer2 = MgF2
-
-# Ensuring the thicknesses are optimal for reflectivity
-d1 = lam_opt / (2 * (tmm.complx_n(lam_opt, *layer1)))
-d2 = lam_opt / (2 * (tmm.complx_n(lam_opt, *layer2)))
-
-for lam in visible_spec:
-    n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1, d2, layer1, layer2)
-
-    r, t = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2)
-    r_values.append(r)
-
-plt.plot(visible_spec, r_values, label='N = ' + str(N))
-plt.xlabel('Wavelength (nm)')
-plt.ylabel('Reflection coefficient')
-plt.legend(loc='best')
-plt.grid()
+# Setting N=14 and thicknesses as the optimal thickness for a wavelength of 633nm.
 
 plt.figure()
-
 angles = [0, np.pi / 6, np.pi / 3]
 
 for ang in angles:
@@ -193,7 +156,7 @@ for ang in angle_tolim:
         r, t = tmm.TMM(lam, ang, polarisation, n_stack2, d_stack2)
         r_values.append(r)
 
-    plt.plot(visible_spec, r_values, label="Angle of " + str("{:.3}".format(ang)))
+    plt.plot(visible_spec, r_values, label='Incident Angle = \u03C0 /' + str(round(1 / ang * (np.pi),5)))
 
 plt.xlabel('Wavelength (nm)')
 plt.ylabel('Reflection coefficient ')
@@ -201,7 +164,65 @@ plt.title('Reflectivity as angle tends towards \u03C0 / 2 ')
 plt.legend(loc='best')
 plt.grid()
 
+#%%
+# Altering the N values to see how increasing layers affects the band gap.
+# Note that the R spectrum as a function of wavelength,
+# we use the optimal thicknesses for an incoming wavelength of 633nm
+# so this is where the peak should be observed.
 
+mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color='kbgrcmy')
+plt.figure()
+
+N_range = np.arange(1, 10, 2)
+incangle = 0
+
+for N in N_range:
+    r_values = []
+
+    for lam in visible_spec:
+        n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1opt, d2opt, Ta2O5, MgF2)
+
+        r, t = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2)
+        r_values.append(r)
+
+    plt.plot(visible_spec, r_values, label='N = ' + str(N))
+
+plt.xlabel('Wavelength (nm)')
+plt.ylabel('Reflection coefficient ')
+plt.title('Reflectivity spectrum as a function of wavelength for different N values')
+plt.legend(loc='best')
+plt.grid()
+
+# Plotting spectrum from N=14.
+
+plt.figure()
+
+N = 14
+r_values = []
+
+layer1 = Ta2O5
+layer2 = MgF2
+
+# Ensuring the thicknesses are optimal for reflectivity
+d1 = lam_opt / (4 * (tmm.complx_n(lam_opt, *layer1)))
+d2 = lam_opt / (4 * (tmm.complx_n(lam_opt, *layer2)))
+
+for lam in visible_spec:
+    n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1, d2, layer1, layer2)
+
+    r, t = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2)
+    r_values.append(r)
+
+plt.plot(visible_spec, r_values, label='N = ' + str(N))
+plt.xlabel('Wavelength (nm)')
+plt.ylabel('Reflection coefficient')
+plt.title('Reflectivity spectrum as a function of wavelength for N=14')
+plt.legend(loc='best')
+plt.grid()
+
+
+
+#%%
 # Investigating changing materials and the effect it has on spectral width
 
 # Using a stack with different materials (SiO2 with MgF2, TiO2 with Ta2O5)
@@ -275,6 +296,7 @@ n_stack, d_stack = tmm.stacklayers(N, 633, dM, dT, MgF2, Ta2O5, substrate_n=n_su
 var_wavelength = np.arange(553, 741)
 rsphases = []
 rgphases = []
+
 for i in var_wavelength:
     n_stack, d_stack = tmm.stacklayers(14, i, dM, dT, MgF2, Ta2O5, substrate_n=n_substrate)
     rstack, tstack = tmm.TMM(i, 0, "s", n_stack, d_stack, squared=False)
@@ -286,14 +308,14 @@ for i in var_wavelength:
 
 plt.figure()
 plt.plot(var_wavelength, rsphases, label="Phase response of DBR")
-
 plt.plot(var_wavelength, rgphases, label="Phase response of gold")
+plt.grid()
+
 plt.legend()
 plt.xlabel("Wavelength in nm")
 plt.ylabel("Phase of reflected wave in rad")
 plt.yticks([-np.pi, -np.pi / 2, 0, np.pi / 2, np.pi],
            [r'$-\pi$', r'$-\pi/2$', r'$0$', r'$+\pi/2$', r'$+\pi$'])
-plt.show()
 
 # %%
 # Introducing a defect to see what happens
