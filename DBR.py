@@ -332,7 +332,7 @@ dcavs = np.arange(0, 500, 10)
 
 n_stack, d_stack = tmm.stacklayers(15, 633, dM, dT, MgF2, Ta2O5, substrate_n=n_substrate)
 
-var_wavelength = np.arange(500, 900, 0.05)
+var_wavelength = np.arange(500, 900, 1)
 r_output = []
 animdata = []
 for dcav in dcavs:
