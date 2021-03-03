@@ -95,7 +95,6 @@ for i in incangle:
 
         r, t,a = tmm.TMM(incominglam, i, incomingpol, ns, ds,absorption=True)
         output.append((i, j, r))
-        print(str(a))
         tot_amp.append(r + t)
 
     # Calculating the theoretical optimal parameters for each angle
