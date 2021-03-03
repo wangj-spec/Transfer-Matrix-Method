@@ -1,8 +1,13 @@
+"""
+Created on Wed Mar  3 00:43:27 2021
+
+@author: leonardobossi1
+"""
+
 import numpy as np
 import tmmfile as tmm
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-plt.style.use('ggplot')
 
 # Importing different materials
 MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
@@ -18,10 +23,9 @@ k = np.array(k)
 # Converted C coefficients to nanometers squared.
 S_coefficients = list([1.03961212, 0.231792344, 1.01046945, 6.00069867e3, 2.00179144e4, 1.03560653e8])
 
-# popt, pcov = curve_fit(sellmeier, wavelength, n, p0 = [1,0,1,0,0,100]) # initial guess taken from internet
 
 # Trial wavelength range
-trial = np.arange(330, 2500, 0.2)
+trial = np.arange(330.5, 2500, 0.2)
 interplovals = list(map(lambda x: tmm.linterpol(x, wavelength, n), trial))
 sellmeiervals = list(map(lambda x: tmm.sellmeier(x, *S_coefficients), trial))
 
@@ -58,7 +62,7 @@ plt.figure()
 plt.title('Scatter plot of imaginary values from refractive indices')
 plt.xlabel('Wavelength (nm)')
 plt.ylabel('refractive index')
-plt.plot(wavelength, k, 'x', label='imaginary values for BK7 glass')
+plt.plot(wavelength, k, 'bx', label='imaginary values for BK7 glass')
 plt.grid()
 
 # %%
@@ -66,10 +70,12 @@ plt.grid()
 # d is the thickness of the anti-reflection layer
 # incangle is the angle of incidence
 
-incominglam = 500
+incominglam = 500 # Fixing the wavelength to 500nm and seeing how the reflectance
+                  # varies with the other variables.
+
 d = np.arange(0, 160, 0.25)
 incangle = np.arange(0, 1, 0.01)
-incomingpol = "s"
+incomingpol = "p"
 
 output = []
 analytic = []
@@ -86,11 +92,12 @@ for i in incangle:
 
         # Obtaining the reflection and transmission for a range of values
 
-        r, t = tmm.TMM(incominglam, i, incomingpol, ns, ds)
+        r, t,a = tmm.TMM(incominglam, i, incomingpol, ns, ds,absorption=True)
         output.append((i, j, r))
+        print(str(a))
         tot_amp.append(r + t)
 
-    # Calculating the theoretical optimal parameters
+    # Calculating the theoretical optimal parameters for each angle
     d2 = incominglam / (np.real(n1) * 4 * np.cos(i))  # the analytical formula for d given the phase
     ds = [d2]
 
@@ -107,8 +114,8 @@ for i in output:  # Output consists of angle value, thickness value, and reflect
     ycoord.append(i[1])
     zcoord.append(i[2])
 
-# Creating the array of analytical values expected
 
+# Creating the array of analytical values expected
 xcoord2, ycoord2, zcoord2 = [], [], []
 
 for i in analytic:
@@ -141,8 +148,7 @@ print('Maximum t+r value = ' + str(max(tot_amp)) + ', minimum value =' + str(min
       'point error.')
 
 # %%
-# Absorption for a layer of gold
-
+# Reflection and transmission in layer of gold.
 # Investigating for normal incidience (angle = 0)
 
 ang = 0
@@ -165,7 +171,7 @@ for lam in visible_spec:
 
         output_list.append((lam, d_val, r, t))
 
-xcoord2, ycoord2, r_vals, t_vals = [], [], [], []
+xcoord2, ycoord2, r_vals, t_vals = [], [], [], [], []
 
 for output in output_list:
     xcoord2.append(output[0])
@@ -200,6 +206,7 @@ ax2.legend()
 
 data2d = []
 
+# Transmission for fixed wavelength of 500nm as a function of layer thickness.
 fixed_wavelength = 500
 ang = 0  # normal incidence
 
@@ -220,5 +227,6 @@ plt.scatter(data2d[:, 0], data2d[:, 2], label='Transmission spectrum for fixed w
 plt.title('Gold layer with glass substrate')
 plt.xlabel('Thickness of layer (nm)')
 plt.ylabel('Transmission coefficient')
+plt.legend()
 plt.grid()
 
