@@ -100,7 +100,7 @@ for i in incangle:
     # Calculating the theoretical optimal parameters for each angle
     ko = 2*np.pi/incominglam
     kx = ko*np.sin(i)
-    d2 = incominglam / (np.real(n1) * 4 * np.real(n1)*ko/np.sqrt((np.real(n)*ko)**2 - np.kx**2))  # the analytical formula for d given the phase
+    d2 = incominglam / (np.real(n1) * 4 * np.real(n1)*ko/np.sqrt((np.real(n)*ko)**2 - kx**2))  # the analytical formula for d given the phase
     ds = [d2]
 
     r2, t2 = tmm.TMM(incominglam, i, incomingpol, ns, ds)
