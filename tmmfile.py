@@ -1,3 +1,9 @@
+"""
+Created on Wed Mar  3 00:43:27 2021
+
+@author: leonardobossi1
+"""
+
 import numpy as np
 import cmath as cm
 
@@ -194,8 +200,6 @@ def TMM(wavelength, angle, polarisation, ns, ds, squared=True, glass_inc=False, 
             n1 = 1.0003  # air
     n2 = ns[-1]
 
-    print(n1, n2)
-
     chip, chim = chifunction(k0, kx, polarisation, n1, n2)
     T_i = np.array([[chip, chim], [chim, chip]])  # interfacial for the substrate
     M = np.matmul(T_i, M)
@@ -301,14 +305,20 @@ def find_N(r_val, wavelength, d1, d2, angle, polarisation, material1, material2)
     while r_current < r_val:
 
         ns, ds = stacklayers(N, wavelength, d1, d2, material1, material2)
+        
+        # If the ratio between iterations is on the order of 
+        # the floating point error, stop the loop
+        
+        if abs(r_current - TMM(wavelength, angle, polarisation, ns, ds, squared=True, absorption = True)[0])/r_current < 10e-15:
+            print('Reflectivity value converges to '+str(TMM(wavelength, angle, polarisation, ns, ds, squared=True, absorption = True)[0])+\
+                  ' for a a total of '+str(N)+' period of layers')        
+            
+            break
+     
         r_current, t, a = TMM(wavelength, angle, polarisation, ns, ds, squared=True, absorption = True)
-        print(r_current)
+        print('R = '+str(r_current)+' for N = '+str(N))
         plot.append([N, r_current, a])
         N += 1
-
-        if N > 50:
-            print("This is unlikely to reach the value within the bit integer limit")
-            break
 
     plot.append([N, r_current, a])
 
