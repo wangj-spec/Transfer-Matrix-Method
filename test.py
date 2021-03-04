@@ -259,3 +259,32 @@ plt.ylabel('Transmission coefficient')
 plt.legend()
 plt.grid()
 
+#%% 
+#Testing thickness of DBR layers against reflectivity
+
+fixed_wavelength = 633 #nm
+
+N_range = np.arange(1,10,4)
+test = np.arange(0, 2, 0.01)
+
+plt.figure()
+for N in N_range:
+    r_values = []
+
+    for i in test:
+        dt = i*np.real(lam_opt / (2 * (tmm.complx_n(lam_opt, *Ta2O5))))
+        dm = i*np.real(lam_opt / (2 * (tmm.complx_n(lam_opt, *MgF2))))
+        n_stack2, d_stack2 = tmm.stacklayers(N, fixed_wavelength, dm, dt, MgF2, Ta2O5)
+
+        r, t = tmm.TMM(fixed_wavelength, incangle, polarisation, n_stack2, d_stack2)
+        r_values.append(r)
+
+    plt.plot(test, r_values, label='N = ' + str(N))
+
+plt.xlabel('Phase due to width of layer (*pi)')
+plt.ylabel('Reflection coefficient ')
+plt.title('Reflectivity spectrum as a function of phase for different N values')
+plt.legend(loc='best')
+plt.grid()
+
+print("As expected, max reflectance for more than 1 period of DBR occurs at the 2*d*kz = pi ")
