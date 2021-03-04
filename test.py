@@ -8,6 +8,7 @@ import numpy as np
 import tmmfile as tmm
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from mpl_toolkits.mplot3d import Axes3D
 
 # Importing different materials
 MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
@@ -117,7 +118,7 @@ for i in incangle:
 
         # Obtaining the reflection and transmission for a range of values
 
-        r, t,a = tmm.TMM(incominglam, i, incomingpol, ns, ds,absorption=True)
+        r, t, a = tmm.TMM(incominglam, i, incomingpol, ns, ds, absorption=True)
         output.append((i, j, r))
         tot_amp.append(r + t)
 
@@ -161,6 +162,7 @@ ax = plt.axes(projection='3d')
 ax.set_xlabel("incidence angle rad")
 ax.set_ylabel("thickness nm")
 ax.set_zlabel("reflection")
+ax.set_title("Reflection spectrum for MgF2 layer on top of glass substrate")
 
 ax.plot(xcoord2, ycoord2, zcoord2, color='r', zorder=1, label="analytical formula")
 ax.scatter(xcoord, ycoord, zcoord, c=zcoord, cmap=cm.viridis, zorder=2, alpha=0.05)
@@ -175,6 +177,43 @@ plt.show()
 print('Maximum t+r value = ' + str(max(tot_amp)) + ', minimum value =' + str(min(tot_amp)) + \
       ' Both of these values are on the order of 10^-16, suggesting this this a floating ' \
       'point error.')
+
+plt.figure()
+angle = 0.2
+
+for j in d:  # numerically getting all values
+
+    n1 = tmm.complx_n(incominglam, *MgF2)
+    n2 = tmm.complx_n(incominglam, *BK7)
+    n1 = complex(np.real(n1), 0)
+    n2 = complex(np.real(n2), 0)
+    ns = [n1, n2]
+    ds = [j]
+
+        # Obtaining the reflection and transmission for a range of values
+
+    r, t, a = tmm.TMM(incominglam, angle, incomingpol, ns, ds, absorption=True)
+    
+    plt.scatter(j, r, color = 'k')
+
+# Calculating the theoretical optimal parameters for each angle
+ko = 2 * np.pi/incominglam
+kx = ko * np.sin(angle)
+        
+d2 = np.pi/ (2 * np.sqrt((np.real(n1)*ko)**2 - kx**2))  # the analytical formula for d given the phase
+        #print(np.shape(d2))
+ds = [d2]
+
+r2, t2 = tmm.TMM(incominglam, angle, incomingpol, ns, ds)
+plt.scatter(d2, r2, label='Analytical optimal thickness')
+
+plt.scatter(0, 0.040453, color='k', label='Datapoints computed using TMM')
+
+plt.xlabel('Thickness of MgF2 layer (nm)')
+plt.ylabel('Total reflection')
+plt.title('Cross section of 3D plot for fixed angle '+str(angle))    
+plt.legend()
+plt.grid()
 
 # %%
 # Reflection and transmission in layer of gold.
@@ -221,7 +260,6 @@ ax.legend()
 
 # Plotting the transmssion spectrum as a function of wavelength and thickness
 fig2 = plt.figure()
-ax2 = plt.axes(projection='3d')
 
 ax2 = plt.axes(projection='3d')
 ax2.set_xlabel("Wavelegth")
