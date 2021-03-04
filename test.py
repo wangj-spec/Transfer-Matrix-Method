@@ -159,18 +159,17 @@ zcoords = zcoord[::10]
 
 fig = plt.figure()
 ax = plt.axes(projection='3d')
-ax.set_xlabel("incidence angle rad")
-ax.set_ylabel("thickness nm")
+ax.set_xlabel("incidence angle (rad)")
+ax.set_ylabel("thickness (nm)")
 ax.set_zlabel("reflection")
-ax.set_title("Reflection spectrum for MgF2 layer on top of glass substrate")
+#ax.set_title("Reflection spectrum for MgF2 layer on top of glass substrate")
 
-ax.plot(xcoord2, ycoord2, zcoord2, color='r', zorder=1, label="analytical formula")
+ax.plot(xcoord2, ycoord2, zcoord2, color='k', zorder=1, label="analytical formula")
 ax.scatter(xcoord, ycoord, zcoord, c=zcoord, cmap=cm.viridis, zorder=2, alpha=0.05)
 
 ax.legend()
 
 plt.show()
-
 #  Checking if r + t = 1 (it should be equal to 1 as we haven't considered
 # absorption yet).
 
@@ -215,6 +214,7 @@ plt.title('Cross section of 3D plot for fixed angle '+str(angle))
 plt.legend()
 plt.grid()
 
+
 # %%
 # Reflection and transmission in layer of gold.
 # Investigating for normal incidience (angle = 0)
@@ -235,22 +235,23 @@ for lam in visible_spec:
         ns = [n1, n2]
         ds = [d_val]
 
-        r, t = tmm.TMM(lam, ang, incomingpol, ns, ds)
+        r, t, a = tmm.TMM(lam, ang, incomingpol, ns, ds, absorption=True)
 
-        output_list.append((lam, d_val, r, t))
+        output_list.append((lam, d_val, r, t, a))
 
-xcoord2, ycoord2, r_vals, t_vals = [], [], [], [], []
+xcoord2, ycoord2, r_vals, t_vals, a_vals = [], [], [], [] ,[]
 
 for output in output_list:
     xcoord2.append(output[0])
     ycoord2.append(output[1])
     r_vals.append(output[2])
     t_vals.append(output[3])
+    a_vals.append(output[4])
 
 fig = plt.figure()
 ax = plt.axes(projection='3d')
 ax.set_xlabel("Wavelegth")
-ax.set_ylabel("thickness nm")
+ax.set_ylabel("thickness (nm)")
 ax.set_zlabel("reflection")
 ax.set_title("Reflection variation for Gold layer on top of glass substrate for normal incidence")
 
@@ -271,31 +272,42 @@ ax2.scatter(xcoord2, ycoord2, t_vals, c=t_vals, cmap=cm.viridis, zorder=2, alpha
 
 ax2.legend()
 
-data2d = []
+
 
 # Transmission for fixed wavelength of 500nm as a function of layer thickness.
-fixed_wavelength = 500
-ang = 0  # normal incidence
 
+fixed_wavelength = 700
+ang = 0  # normal incidence
+data2d = []
 for d_val in d_range:
     n1 = tmm.complx_n(fixed_wavelength, *Au)  # refractive index of gold
     n2 = tmm.complx_n(fixed_wavelength, *BK7)  # refractive index of BK7 glass
 
     ns = [n1, n2]
     ds = [d_val]
-    r, t = tmm.TMM(fixed_wavelength, ang, incomingpol, ns, ds)
+    r, t, a = tmm.TMM(fixed_wavelength, ang, incomingpol, ns, ds, absorption=True)
 
-    data2d.append((d_val, r, t))
+    data2d.append((d_val, r, t, a))
 
 data2d = np.array(data2d)
 
 plt.figure()
-plt.scatter(data2d[:, 0], data2d[:, 2], label='Transmission spectrum for fixed wavelength 500nm')
+plt.scatter(data2d[:, 0], data2d[:, 2], label='Transmission spectrum for fixed wavelength '+str(fixed_wavelength)+' nm')
 plt.title('Gold layer with glass substrate')
 plt.xlabel('Thickness of layer (nm)')
 plt.ylabel('Transmission coefficient')
 plt.legend()
 plt.grid()
+
+# Plotting the observed absorption
+plt.figure()
+plt.scatter(data2d[:, 0], data2d[:, 3], label='Absorption spectrum for fixed wavelength '+str(fixed_wavelength)+' nm', color='k')
+plt.title('Gold layer with glass substrate')
+plt.xlabel('Thickness of layer (nm)')
+plt.ylabel('Total power absorbed')
+plt.legend()
+plt.grid()
+
 
 #%% 
 #Testing thickness of DBR layers against reflectivity
