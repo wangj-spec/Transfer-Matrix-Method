@@ -261,8 +261,14 @@ plt.grid()
 
 #%% 
 #Testing thickness of DBR layers against reflectivity
+Ta2O5 = np.loadtxt("Ta2O5.csv", skiprows=1, unpack=True, delimiter=",")
+MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
+Ta2O5[0] = Ta2O5[0] * 1000
 
-fixed_wavelength = 633 #nm
+visible_spec = np.arange(500, 900, 1)
+polarisation = 'p'
+incangle = 0
+lam_opt = 633
 
 N_range = np.arange(1,10,4)
 test = np.arange(0, 2, 0.01)
@@ -274,9 +280,9 @@ for N in N_range:
     for i in test:
         dt = i*np.real(lam_opt / (2 * (tmm.complx_n(lam_opt, *Ta2O5))))
         dm = i*np.real(lam_opt / (2 * (tmm.complx_n(lam_opt, *MgF2))))
-        n_stack2, d_stack2 = tmm.stacklayers(N, fixed_wavelength, dm, dt, MgF2, Ta2O5)
+        n_stack2, d_stack2 = tmm.stacklayers(N, lam_opt, dm, dt, MgF2, Ta2O5)
 
-        r, t = tmm.TMM(fixed_wavelength, incangle, polarisation, n_stack2, d_stack2)
+        r, t = tmm.TMM(lam_opt, incangle, polarisation, n_stack2, d_stack2)
         r_values.append(r)
 
     plt.plot(test, r_values, label='N = ' + str(N))
