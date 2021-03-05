@@ -176,12 +176,12 @@ plt.figure()
 N_range = np.arange(1, 10, 2)
 incangle = 0
 
+
 for N in N_range:
     r_values = []
 
     for lam in visible_spec:
         n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1opt, d2opt, Ta2O5, MgF2)
-
         r, t = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2)
         r_values.append(r)
 
@@ -194,33 +194,78 @@ plt.legend(loc='best')
 plt.grid()
 
 # Plotting spectrum from N=14.
-
 plt.figure()
 
 N = 14
 r_values = []
-a_values = []
+a_values=[]
+t_values=[]
+
 layer1 = Ta2O5
 layer2 = MgF2
 
 # Ensuring the thicknesses are optimal for reflectivity
-d1 = lam_opt / (4 * (tmm.complx_n(lam_opt, *layer1)))
-d2 = lam_opt / (4 * (tmm.complx_n(lam_opt, *layer2)))
+d1 = np.real(lam_opt / (4 * (tmm.complx_n(lam_opt, *layer1))))
+d2 = np.real(lam_opt / (4 * (tmm.complx_n(lam_opt, *layer2))))
 
 for lam in visible_spec:
-    n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1, d2, layer1, layer2)
+    
 
-    r, t, a  = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2, absorption = True)
+    
+    n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1, d2, layer1, layer2)
+    
+    r, t, a = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2, absorption=True)
     r_values.append(r)
     a_values.append(a)
-    
-plt.plot(visible_spec, r_values, label= reflectance)
-plt.plot(visible_spec, a_values, label= absorption)
+    t_values.append(t)
+
+plt.plot(visible_spec, r_values, label='Reflection values')
+plt.plot(visible_spec, a_values, label='Absorption values')
+
 plt.xlabel('Wavelength (nm)')
-plt.ylabel('Reflection and absorption ratio')
+plt.ylabel('Reflection coefficient')
 plt.title('Reflectivity spectrum as a function of wavelength for N=14')
 plt.legend(loc='best')
 plt.grid()
+
+# Creating a high/low edge pass filter
+plt.figure()
+
+N = 10
+r_values = []
+a_values=[]
+t_values=[]
+
+layer1 = Ta2O5
+layer2 = MgF2
+
+# Ensuring the thicknesses are optimal for reflectivity
+d1 = np.real(lam_opt / (4 * (tmm.complx_n(lam_opt, *layer1))))
+d2 = np.real(lam_opt / (4 * (tmm.complx_n(lam_opt, *layer2))))
+
+for lam in visible_spec:
+    
+
+    n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1, d2, layer1, layer2)
+    d_stack2[0] = d_stack2[0]/2
+    n_stack2[-1] = tmm.complx_n(lam, *layer1)
+    n_stack2.append(1)
+    d_stack2.append(d1/2)
+    
+    r, t, a = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2, absorption=True)
+    r_values.append(r)
+    a_values.append(a)
+    t_values.append(t)
+
+plt.plot(visible_spec, t_values, label='Reflection values')
+#plt.plot(visible_spec, a_values, label='Absorption values')
+
+plt.xlabel('Wavelength (nm)')
+plt.ylabel('Transmission')
+plt.title('Transmission spectrum as a function of wavelength for N=14')
+plt.legend(loc='best')
+plt.grid()
+
 
 
 
@@ -261,7 +306,7 @@ plt.legend(loc='upper right')
 # MgF2 and SiO2 (both lower refractive indices). Many more layers are required
 # to achieve high reflectivity, and the spectral width is much lower.
 
-N = 40
+N = 60
 r_values3 = []
 
 for lam in visible_spec:
@@ -278,7 +323,7 @@ plt.grid()
 plt.legend()
 # plt.savefig("High resoltion.png",dpi=300)
 
-print('spectral width for SiO2 and MgF2 with N=35 is ' + str(tmm.spectral_width(r_values3)) + ' nm')
+print('spectral width for SiO2 and MgF2 with N=60 is ' + str(tmm.spectral_width(r_values3)) + ' nm')
 print('spectral width for TiO2 with SiO2 with N=14 is ' + str(tmm.spectral_width(r_values2)) + ' nm')
 print('spectral width for TiO2 and Ta2O5 with N=14 is ' + str(tmm.spectral_width(r_values)) + ' nm')
 
@@ -334,7 +379,7 @@ dcavs = np.arange(0, 500, 10)
 
 n_stack, d_stack = tmm.stacklayers(15, 633, dM, dT, MgF2, Ta2O5, substrate_n=n_substrate)
 
-var_wavelength = np.arange(500, 900, 1)
+var_wavelength = np.arange(500, 900, 0.05)
 r_output = []
 animdata = []
 for dcav in dcavs:
