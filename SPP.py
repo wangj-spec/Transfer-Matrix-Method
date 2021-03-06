@@ -1,13 +1,10 @@
-
-
 import numpy as np
 import tmmfile as tmm
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib as mpl
-from matplotlib.animation import FuncAnimation
-plt.style.use('ggplot')
+import cmath as cm
+
+
 
 # Importing different materials
 MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
@@ -62,6 +59,8 @@ plt.figure()
 plt.plot(angles, r_p, label='p polarisation')
 plt.plot(angles, r_s, label='s polarisation')
 plt.title("SPP from BK7 to air using Gold")
+plt.xlabel('Angle of incidence (rad)')
+plt.ylabel('Total reflection')
 
 plt.vlines(critical_ang, 0, 1, color='r', label='critical angle')
 plt.vlines(spr_ang, 0, 1, color = 'c', label = "Expected angle for SPP")
@@ -100,9 +99,11 @@ plt.figure()
 plt.plot(angles, r_p, label='p polarisation')
 plt.plot(angles, r_s, label='s polarisation')
 plt.title("SPP from BK7 to SiO2 using Gold")
+plt.xlabel('Angle of incidence (rad)')
+plt.ylabel('Total reflection')
 
 plt.vlines(critical_ang, 0, 1, color='r', label='critical angle')
-plt.vlines(spr_ang, 0, 1, color = 'c', label = "Expected angle for SPP")
+plt.vlines(spr_ang, 0, 1, color = 'c', label = "SSP angle")
 
 plt.grid()
 plt.legend()
