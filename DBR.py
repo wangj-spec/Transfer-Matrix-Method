@@ -418,3 +418,54 @@ anim = FuncAnimation(
 plt.draw()
 plt.show()
 anim.save('filename.gif', writer='imagemagick')
+
+#%%
+# Trying to make a band gap
+# expansion of a central cavity
+# for DBRs of Ta2O5, MgF2
+
+nL = tmm.complx_n(fixed_wavelength, *MgF2)
+dL = 633 / (np.real(nL) * 4 * np.cos(incangle))
+
+nH = tmm.complx_n(fixed_wavelength, *Ta2O5)
+dH = 633 / (np.real(nH) * 4 * np.cos(incangle))
+
+ncav = 1.0003
+dcavs = np.arange(0, 500, 0.5)
+
+var_wavelength = np.arange(500, 900, 1)
+r_output = []
+t_output = []
+animdata = []
+animdatat = []
+rout2 = []
+drec = []
+for i in var_wavelength:
+    #n_cav = tmm.complx_n(i, *GaAs)
+    n2stack, d2stack = tmm.stacklayers(4, i, dL, dH, MgF2, Ta2O5, substrate_n=n_substrate)
+    n1stack, d1stack = tmm.stacklayers(4, i, dH, dL, Ta2O5, MgF2, substrate_n=n_substrate)
+    n1stack.pop()
+    n2stack.pop()
+    n_stack = n1stack.copy()
+    n_stack.extend(n2stack)
+    d_stack = d1stack.copy()
+    d_stack.extend(d2stack)
+
+    n_stack.append(tmm.complx_n(i, *MgF2))
+    d_stack.append(dL)
+
+    n_stack.extend(n1stack)
+    n_stack.extend(n2stack)
+    d_stack.extend(d1stack)
+    d_stack.extend(d2stack)
+
+    n_stack.append(tmm.complx_n(i, *BK7))
+
+    rstack, tstack = tmm.TMM(i, 0, "s", n_stack, d_stack)
+    t_output.append(tstack)
+    r_output.append(rstack)
+
+
+plt.figure()
+plt.plot(var_wavelength, t_output)
+plt.show()
