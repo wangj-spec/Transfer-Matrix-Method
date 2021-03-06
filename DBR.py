@@ -209,7 +209,6 @@ d1 = np.real(lam_opt / (4 * (tmm.complx_n(lam_opt, *layer1))))
 d2 = np.real(lam_opt / (4 * (tmm.complx_n(lam_opt, *layer2))))
 
 for lam in visible_spec:
-    
 
     
     n_stack2, d_stack2 = tmm.stacklayers(N, lam, d1, d2, layer1, layer2)
@@ -220,24 +219,12 @@ for lam in visible_spec:
     t_values.append(t)
 
 plt.plot(visible_spec, r_values, label='Reflection values')
-plt.plot(visible_spec, a_values, label='Absorption values')
+#plt.plot(visible_spec, a_values, label='Absorption values')
 
-plt.xlabel('Wavelength (nm)')
-plt.ylabel('Reflection coefficient')
-plt.title('Reflectivity spectrum as a function of wavelength for N=14')
-plt.legend(loc='best')
-plt.grid()
+# Creating a high/low edge pass filter by eliminating noise
 
-# Creating a high/low edge pass filter
-plt.figure()
-
-N = 10
-r_values = []
-a_values=[]
-t_values=[]
-
-layer1 = Ta2O5
-layer2 = MgF2
+N = 14
+r_noise = []
 
 # Ensuring the thicknesses are optimal for reflectivity
 d1 = np.real(lam_opt / (4 * (tmm.complx_n(lam_opt, *layer1))))
@@ -253,19 +240,55 @@ for lam in visible_spec:
     d_stack2.append(d1/2)
     
     r, t, a = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2, absorption=True)
-    r_values.append(r)
-    a_values.append(a)
-    t_values.append(t)
+    r_noise.append(r)
 
-plt.plot(visible_spec, t_values, label='Reflection values')
+
+plt.plot(visible_spec, r_noise, label='Reflection values after reducing noise')
 #plt.plot(visible_spec, a_values, label='Absorption values')
 
+plt.title('Noise reduction for optical filter applications')
 plt.xlabel('Wavelength (nm)')
-plt.ylabel('Transmission')
-plt.title('Transmission spectrum as a function of wavelength for N=14')
-plt.legend(loc='best')
+plt.ylabel('Reflection')
+plt.legend(loc='upper right')
 plt.grid()
 
+
+plt.figure()
+
+# Extending the stop-band
+r_extend = [] 
+lam_opt2 = 736
+d3 = np.real(lam_opt2 / (4 * (tmm.complx_n(lam_opt2, *layer1))))
+d4 = np.real(lam_opt2 / (4 * (tmm.complx_n(lam_opt2, *layer2))))
+
+for lam in visible_spec:
+    
+    n_1, d_1 = tmm.stacklayers(N, lam, d1, d2, layer1, layer2)
+    n_2, d_2 = tmm.stacklayers(N, lam, d3, d4, layer1, layer2)
+    
+    d_1[0] = d_1[0]/2
+    d_2[0] = d_2[0]/2
+    n_2[-1] = tmm.complx_n(lam, *layer1)
+    n_1[-1] = tmm.complx_n(lam, *layer1)
+    n_2.append(1)
+    d_2.append(d3/2)
+    d_1.append(d1/2)
+    
+    n_stack2 = np.append(n_1, n_2)
+    d_stack2 = np.append(d_1, d_2)
+    
+    
+    r, t, a = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2, absorption=True)
+    r_extend.append(r)
+
+plt.plot(visible_spec, r_extend, label='Reflection values after extending stop band', color='r')
+plt.plot(visible_spec, r_noise, label='Reflection values after reducing noise')
+
+plt.xlabel('Wavelength (nm)')
+plt.ylabel('Reflection')
+plt.title('Reflection spectrum after extending the stop band and reducing noise')
+plt.legend(loc='upper right')
+plt.grid()
 
 
 
