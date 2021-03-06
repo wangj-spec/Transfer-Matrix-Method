@@ -218,13 +218,14 @@ for lam in visible_spec:
     a_values.append(a)
     t_values.append(t)
 
-plt.plot(visible_spec, r_values, label='Reflection values')
+plt.plot(visible_spec, t_values, label='R')
 #plt.plot(visible_spec, a_values, label='Absorption values')
 
 # Creating a high/low edge pass filter by eliminating noise
 
 N = 14
 r_noise = []
+t_noise = []
 
 # Ensuring the thicknesses are optimal for reflectivity
 d1 = np.real(lam_opt / (4 * (tmm.complx_n(lam_opt, *layer1))))
@@ -241,22 +242,23 @@ for lam in visible_spec:
     
     r, t, a = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2, absorption=True)
     r_noise.append(r)
+    t_noise.append(t)
 
 
-plt.plot(visible_spec, r_noise, label='Reflection values after reducing noise')
+plt.plot(visible_spec, t_noise, label='R with noise reduction')
 #plt.plot(visible_spec, a_values, label='Absorption values')
 
-plt.title('Noise reduction for optical filter applications')
+#plt.title('Noise reduction for optical filter applications')
 plt.xlabel('Wavelength (nm)')
-plt.ylabel('Reflection')
-plt.legend(loc='upper right')
+plt.ylabel('Transmission')
+plt.legend(loc='lower right')
 plt.grid()
-
-
 plt.figure()
 
 # Extending the stop-band
 r_extend = [] 
+t_extend = []
+
 lam_opt2 = 736
 d3 = np.real(lam_opt2 / (4 * (tmm.complx_n(lam_opt2, *layer1))))
 d4 = np.real(lam_opt2 / (4 * (tmm.complx_n(lam_opt2, *layer2))))
@@ -280,14 +282,15 @@ for lam in visible_spec:
     
     r, t, a = tmm.TMM(lam, incangle, polarisation, n_stack2, d_stack2, absorption=True)
     r_extend.append(r)
+    t_extend.append(t)
 
-plt.plot(visible_spec, r_extend, label='Reflection values after extending stop band', color='r')
-plt.plot(visible_spec, r_noise, label='Reflection values after reducing noise')
+plt.plot(visible_spec, t_extend, label='Extended stopband', color='r')
+plt.plot(visible_spec, t_noise, label='Noise reduction')
 
 plt.xlabel('Wavelength (nm)')
-plt.ylabel('Reflection')
-plt.title('Reflection spectrum after extending the stop band and reducing noise')
-plt.legend(loc='upper right')
+plt.ylabel('Transmission')
+#plt.title('Tranmission spectrum after extending the stop band and reducing noise')
+plt.legend(loc='upper left')
 plt.grid()
 
 
