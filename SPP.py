@@ -36,27 +36,73 @@ mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["b", "k", "r"])
 # comparison between p (TM) polarisation and s
 inc_lam = 633
 d_gold = [49]
-critical_ang = np.arcsin(1.0003 / np.real(tmm.complx_n(inc_lam, *BK7)))
 
-n_list = [tmm.complx_n(inc_lam, *Au), 1.0003]
+nB = (tmm.complx_n(inc_lam, *BK7))
+nG = (tmm.complx_n(inc_lam, *Au))
+nA = 1.0003 #refractive index of air
 
-angles = np.arange(0, np.pi / 2, 0.01)
+critical_ang = np.arcsin(nA/ nB)
+spr_ang = np.arcsin(((1/nB) * (nA*nG) / cm.sqrt((nA**2 + nG**2))))
+
+n_list = [nG, nA]
+
+angles = np.arange(0, np.pi / 2, 0.001)
 
 r_p = []
 r_s = []
 
 for ang in angles:
-    rp, tp = tmm.TMM(inc_lam, ang, 'p', n_list, d_gold, glass_inc=True, material=BK7)
+    rp, tp,  = tmm.TMM(inc_lam, ang, 'p', n_list, d_gold, glass_inc=True, material=BK7)
     r_p.append(rp)
 
-    rs, ts = tmm.TMM(inc_lam, ang, 's', n_list, d_gold, glass_inc=True, material=BK7)
+    rs, ts, = tmm.TMM(inc_lam, ang, 's', n_list, d_gold, glass_inc=True, material=BK7)
     r_s.append(rs)
 
 plt.figure()
 plt.plot(angles, r_p, label='p polarisation')
 plt.plot(angles, r_s, label='s polarisation')
+plt.title("SPP from BK7 to air using Gold")
 
 plt.vlines(critical_ang, 0, 1, color='r', label='critical angle')
+plt.vlines(spr_ang, 0, 1, color = 'c', label = "Expected angle for SPP")
+
+plt.grid()
+plt.legend()
+
+#%%
+#modelling SPP from BK7 to SiO2 Substrate using thin Gold film
+
+inc_lam = 633
+d_gold = [17]
+
+nB = (tmm.complx_n(inc_lam, *BK7))
+nG = (tmm.complx_n(inc_lam, *Au))
+nA = (tmm.complx_n(inc_lam, *SiO2))
+
+critical_ang = np.arcsin(nA/ nB)
+spr_ang = np.arcsin(((1/nB) * (nA*nG) / cm.sqrt((nA**2 + nG**2))))
+
+n_list = [nG, nA]
+
+angles = np.arange(0, np.pi / 2, 0.001)
+
+r_p = []
+r_s = []
+
+for ang in angles:
+    rp, tp,  = tmm.TMM(inc_lam, ang, 'p', n_list, d_gold, glass_inc=True, material=BK7)
+    r_p.append(rp)
+
+    rs, ts, = tmm.TMM(inc_lam, ang, 's', n_list, d_gold, glass_inc=True, material=BK7)
+    r_s.append(rs)
+
+plt.figure()
+plt.plot(angles, r_p, label='p polarisation')
+plt.plot(angles, r_s, label='s polarisation')
+plt.title("SPP from BK7 to SiO2 using Gold")
+
+plt.vlines(critical_ang, 0, 1, color='r', label='critical angle')
+plt.vlines(spr_ang, 0, 1, color = 'c', label = "Expected angle for SPP")
 
 plt.grid()
 plt.legend()
