@@ -274,25 +274,36 @@ ax2.legend()
 
 
 
-# Transmission for fixed wavelength of 500nm as a function of layer thickness.
+# Transmission for wavelength as a function of layer thickness.
+mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["r", "k", "c", "g"])
 
-fixed_wavelength = 700
+varwave = np.arange(500, 900, 100)
 ang = 0  # normal incidence
-data2d = []
-for d_val in d_range:
-    n1 = tmm.complx_n(fixed_wavelength, *Au)  # refractive index of gold
-    n2 = tmm.complx_n(fixed_wavelength, *BK7)  # refractive index of BK7 glass
+data3d = []
+for wavelength in varwave:
+    data2d = []
+    for d_val in d_range:
+        n1 = tmm.complx_n(wavelength, *Au)  # refractive index of gold
+        n2 = tmm.complx_n(wavelength, *BK7)  # refractive index of BK7 glass
 
-    ns = [n1, n2]
-    ds = [d_val]
-    r, t, a = tmm.TMM(fixed_wavelength, ang, incomingpol, ns, ds, absorption=True)
+        ns = [n1, n2]
+        ds = [d_val]
+        r, t, a = tmm.TMM(wavelength, ang, incomingpol, ns, ds, absorption=True)
 
-    data2d.append((d_val, r, t, a))
-
-data2d = np.array(data2d)
+        data2d.append((d_val, r, t, a))
+    data3d.append(data2d)
+data3d = np.array(data3d)
 
 plt.figure()
-plt.scatter(data2d[:, 0], data2d[:, 2], label='Transmission spectrum for fixed wavelength '+str(fixed_wavelength)+' nm')
+# Plotting the observed transmission
+plt.plot(data3d[0][:, 0], data3d[0][:, 2], label='Wavelength = 500 nm')
+plt.plot(data3d[1][:, 0], data3d[1][:, 2], label='Wavelength = 600 nm')
+plt.plot(data3d[2][:, 0], data3d[2][:, 2], label='Wavelength = 700 nm')
+plt.plot(data3d[3][:, 0], data3d[3][:, 2], label='Wavelength = 800 nm')
+plt.scatter(data3d[0][:, 0][::10], data3d[0][:, 2][::10],marker = '*')
+plt.scatter(data3d[1][:, 0][::10], data3d[1][:, 2][::10],marker = '1')
+plt.scatter(data3d[2][:, 0][::10], data3d[2][:, 2][::10],marker = 'o')
+plt.scatter(data3d[3][:, 0][::10], data3d[3][:, 2][::10],marker = 'x')
 plt.title('Gold layer with glass substrate')
 plt.xlabel('Thickness of layer (nm)')
 plt.ylabel('Transmission coefficient')
@@ -301,10 +312,33 @@ plt.grid()
 
 # Plotting the observed absorption
 plt.figure()
-plt.scatter(data2d[:, 0], data2d[:, 3], label='Absorption spectrum for fixed wavelength '+str(fixed_wavelength)+' nm', color='k')
+plt.plot(data3d[0][:, 0], data3d[0][:, 3], label='Wavelength = 500 nm')
+plt.plot(data3d[1][:, 0], data3d[1][:, 3], label='Wavelength = 600 nm')
+plt.plot(data3d[2][:, 0], data3d[2][:, 3], label='Wavelength = 700 nm')
+plt.plot(data3d[3][:, 0], data3d[3][:, 3], label='Wavelength = 800 nm')
+plt.scatter(data3d[0][:, 0][::10], data3d[0][:, 3][::10],marker = '*')
+plt.scatter(data3d[1][:, 0][::10], data3d[1][:, 3][::10],marker = '1')
+plt.scatter(data3d[2][:, 0][::10], data3d[2][:, 3][::10],marker = 'o')
+plt.scatter(data3d[3][:, 0][::10], data3d[3][:, 3][::10],marker = 'x')
 plt.title('Gold layer with glass substrate')
 plt.xlabel('Thickness of layer (nm)')
 plt.ylabel('Total power absorbed')
+plt.legend()
+plt.grid()
+
+# Plotting the observed reflection
+plt.figure()
+plt.plot(data3d[0][:, 0], data3d[0][:, 1], label='Wavelength = 500 nm')
+plt.plot(data3d[1][:, 0], data3d[1][:, 1], label='Wavelength = 600 nm')
+plt.plot(data3d[2][:, 0], data3d[2][:, 1], label='Wavelength = 700 nm')
+plt.plot(data3d[3][:, 0], data3d[3][:, 1], label='Wavelength = 800 nm')
+plt.scatter(data3d[0][:, 0][::10], data3d[0][:, 1][::10], marker = '*')
+plt.scatter(data3d[1][:, 0][::10], data3d[1][:, 1][::10], marker = '1')
+plt.scatter(data3d[2][:, 0][::10], data3d[2][:, 1][::10], marker = 'o')
+plt.scatter(data3d[3][:, 0][::10], data3d[3][:, 1][::10], marker = 'x')
+plt.title('Reflection of gold layer with glass substrate')
+plt.xlabel('Thickness of layer (nm)')
+plt.ylabel('Reflection coefficient')
 plt.legend()
 plt.grid()
 
