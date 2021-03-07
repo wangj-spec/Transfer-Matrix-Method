@@ -107,3 +107,4 @@ plt.vlines(spr_ang, 0, 1, color = 'c', label = "SSP angle")
 
 plt.grid()
 plt.legend()
+
