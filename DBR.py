@@ -459,7 +459,7 @@ dT = 633 / (np.real(nT) * 4 * np.cos(incangle))
 dM = 633 / (np.real(nM) * 4 * np.cos(incangle))
 
 ncav = complex(1.0003 + 0j)
-dcavs = np.arange(100, 500, 20)
+dcavs = np.arange(0, 500, 20)
 
 n_stack, d_stack = tmm.stacklayers(15, 633, dM, dT, MgF2, Ta2O5, substrate_n=n_substrate)
 
@@ -506,18 +506,18 @@ for dcav in dcavs:
 
 fig, ax = plt.subplots(figsize=(10, 6))
 ax.set(xlim=(500, 900), ylim=(0, 1.1))
-line = ax.plot(var_wavelength, animdata[0], color='k', lw=2)[0]
-line2 = ax.plot(var_wavelength, animdatat[0], color = 'r', lw = 2 )[0]
+line = ax.plot(var_wavelength, animdata[0], color='k', lw=2, label = "Reflectance")[0]
+line2 = ax.plot(var_wavelength, animdatat[0], color = 'r', lw = 2, label = "Transmittance" )[0]
 ax.set_ylabel("Transmission and Reflection ratio")
 ax.set_xlabel("Incident wavelength (nm)")
 
 ax2 = ax.twinx()
 
 ax2.set_ylabel("Phase response")
-line3 = ax2.plot(var_wavelength, animphase[0], color = 'c', lw = 2)[0]
+line3 = ax2.plot(var_wavelength, animphase[0], color = 'c', lw = 2, label = "Phase Response")[0]
 ax2.yaxis.set_major_formatter(tck.FormatStrFormatter('%g $\pi$'))
 ax2.yaxis.set_major_locator(tck.MultipleLocator(base=1.0))
-
+plt.legend()
 def animate(i):
     line.set_ydata(animdata[i])
     line2.set_ydata(animdatat[i])
