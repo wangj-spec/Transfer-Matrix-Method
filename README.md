@@ -18,7 +18,7 @@ SPP.py
 Investigating the behaviour of a gold layer on a glass substrate, including the surface plasmon polarisation and absorption spectrum of gold.
 
 DBR.py
-Investigating distributed bragg reflectors (DBR) and using them to create optical filters. 
+Investigating distributed bragg reflectors (DBR) and using them to create optical filters. **This file also includes a simulation, which could take a few minutes to run due to the large number of values computed.
 
 For all of the modules, tmmfile.py is imported as the functions in the file are needed for analysis.
 
