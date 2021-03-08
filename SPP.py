@@ -58,12 +58,12 @@ for ang in angles:
 plt.figure()
 plt.plot(angles, r_p, label='p polarisation')
 plt.plot(angles, r_s, label='s polarisation')
-plt.title("SPP from BK7 to air using Gold")
+plt.title("SPP from BK7 to air through Gold")
 plt.xlabel('Angle of incidence (rad)')
 plt.ylabel('Total reflection')
 
-plt.vlines(critical_ang, 0, 1, color='g', ls='--', label='critical angle')
-plt.vlines(spr_ang, 0, 1, color = 'r', ls='--', label = "Expected angle for SPP")
+plt.vlines(critical_ang, 0, 1, color='g',  label='critical angle')
+plt.vlines(spr_ang, 0, 1, color = 'r',  label = "Expected angle for SPP")
 
 plt.grid()
 plt.legend()
@@ -103,7 +103,7 @@ plt.xlabel('Angle of incidence (rad)')
 plt.ylabel('Total reflection')
 
 plt.vlines(critical_ang, 0, 1, color='r', label='critical angle')
-plt.vlines(spr_ang, 0, 1, color = 'c', label = "SSP angle")
+plt.vlines(spr_ang, 0, 1, color = 'c', label = "Expected SPP angle")
 
 plt.grid()
 plt.legend()
