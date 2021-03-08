@@ -391,27 +391,34 @@ plt.yticks([-np.pi, -np.pi / 2, 0, np.pi / 2, np.pi],
            [r'$-\pi$', r'$-\pi/2$', r'$0$', r'$+\pi/2$', r'$+\pi$'])
 
 # %%
+# %%
 # Introducing a defect to see what happens
 # expansion of a central cavity
 # for DBR of Ta2O5, MgF2
 # central optical cavity of air to begin
+import matplotlib.ticker as tck
 nT = tmm.complx_n(fixed_wavelength, *Ta2O5)
 nM = tmm.complx_n(fixed_wavelength, *MgF2)
 dT = 633 / (np.real(nT) * 4 * np.cos(incangle))
 dM = 633 / (np.real(nM) * 4 * np.cos(incangle))
 
-ncav = complex(1 + 0j)
-dcavs = np.arange(0, 500, 10)
+ncav = complex(1.0003 + 0j)
+dcavs = np.arange(0, 500, 20)
 
 n_stack, d_stack = tmm.stacklayers(15, 633, dM, dT, MgF2, Ta2O5, substrate_n=n_substrate)
 
 var_wavelength = np.arange(500, 900, 0.05)
-r_output = []
+
 animdata = []
+animdatat = []
+animphase = []
 for dcav in dcavs:
     r_output = []
+    t_output = []
+    phasesr = []
     for i in var_wavelength:
         n_stack, d_stack = tmm.stacklayers(14, i, dM, dT, MgF2, Ta2O5, substrate_n=n_substrate)
+
         n_stack1 = n_stack.copy()
         n_stack1.pop()
         n_stack1.append(ncav)
@@ -419,34 +426,55 @@ for dcav in dcavs:
         d_stack1 = d_stack.copy()
         d_stack1.append(dcav)
         d_stack1.extend(d_stack)
-        rstack, tstack = tmm.TMM(i, 0, "s", n_stack1, d_stack1)
-        r_output.append(rstack)
-    print(dcav)
-    #    im = plt.figure()
-    #   plt.plot(var_wavelength, r_output)
-    #  plt.title("Cavity of air at " + str(dcav) + "nm thickness")
-    # plt.xlabel('wavelength (nm)')
-    # plt.ylabel("Reflectance")
-    animdata.append(r_output)
+        rstack, tstack = tmm.TMM(i, 0, "s", n_stack1, d_stack1, squared = False)
 
-fig, ax = plt.subplots(figsize=(5, 3))
+        rphase = np.angle(rstack)
+        phasesr.append(rphase)
+
+        rstack = np.abs(rstack)**2
+        tstack = np.abs(tstack)**2
+        r_output.append(rstack)
+        t_output.append(tstack)
+    print(dcav)
+
+    if dcav%20 == 0 and dcav < 101:
+        im = plt.figure()
+        plt.plot(var_wavelength, r_output)
+        plt.title("Cavity of air at " + str(dcav) + "nm thickness")
+        plt.xlabel('wavelength (nm)')
+        plt.ylabel("Reflectance")
+    animdata.append(r_output)
+    animdatat.append(t_output)
+    animphase.append(phasesr)
+
+fig, ax = plt.subplots(figsize=(10, 6))
 ax.set(xlim=(500, 900), ylim=(0, 1.1))
 line = ax.plot(var_wavelength, animdata[0], color='k', lw=2)[0]
+line2 = ax.plot(var_wavelength, animdatat[0], color = 'r', lw = 2 )[0]
+ax.set_ylabel("Transmission and Reflection ratio")
+ax.set_xlabel("Incident wavelength (nm)")
 
+ax2 = ax.twinx()
+
+ax2.set_ylabel("Phase response")
+line3 = ax2.plot(var_wavelength, animphase[0], color = 'c', lw = 2)[0]
+ax2.yaxis.set_major_formatter(tck.FormatStrFormatter('%g $\pi$'))
+ax2.yaxis.set_major_locator(tck.MultipleLocator(base=1.0))
 
 def animate(i):
     line.set_ydata(animdata[i])
-
+    line2.set_ydata(animdatat[i])
+    line3.set_ydata(animphase[i])
 
 anim = FuncAnimation(
-    fig, animate, interval=100, frames=len(dcavs) - 1)
+    fig, animate, interval=100, frames = len(dcavs) - 1)
 
 plt.draw()
 plt.show()
 anim.save('filename.gif', writer='imagemagick')
 
 #%%
-# Trying to make a band gap
+# Trying to make a band filter
 # expansion of a central cavity
 # for DBRs of Ta2O5, MgF2
 
