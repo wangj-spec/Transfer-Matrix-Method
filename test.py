@@ -163,7 +163,7 @@ ax = plt.axes(projection='3d')
 ax.set_xlabel("incidence angle (rad)")
 ax.set_ylabel("thickness (nm)")
 ax.set_zlabel("reflection")
-#ax.set_title("Reflection spectrum for MgF2 layer on top of glass substrate")
+ax.set_title("Reflection spectrum for MgF2 layer on top of BK7 substrate")
 
 ax.plot(xcoord2, ycoord2, zcoord2, color='k', zorder=1, label="analytical formula")
 ax.scatter(xcoord, ycoord, zcoord, c=zcoord, cmap=cm.viridis, zorder=2, alpha=0.05)
