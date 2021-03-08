@@ -9,6 +9,7 @@ import tmmfile as tmm
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from mpl_toolkits.mplot3d import Axes3D
+import matplotlib as mpl
 
 # Importing different materials
 MgF2 = np.loadtxt("MgF2.txt", skiprows=1, unpack=True)
@@ -371,10 +372,10 @@ for N in N_range:
 
     plt.plot(test, r_values, label='N = ' + str(N))
 
-plt.xlabel('Phase due to width of layer (*pi)')
+plt.xlabel('Phase due to width of layer (\u03C0 rad)')
 plt.ylabel('Reflection coefficient ')
 plt.title('Reflectivity spectrum as a function of phase for different N values')
 plt.legend(loc='best')
 plt.grid()
 
-print("As expected, max reflectance for more than 1 period of DBR occurs at the 2*d*kz = pi ")
+print("As expected, max reflectance for more than 1 period of DBR occurs at the 2*d*kz = \u03C0 ")
