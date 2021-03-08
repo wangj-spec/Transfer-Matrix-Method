@@ -58,7 +58,6 @@ plt.plot(wavelength, n, 'x', label='real values for BK7 glass')
 plt.xlabel('Wavelength (nm)')
 plt.ylabel('refractive index')
 plt.grid()
-plt.legend()
 
 plt.figure()
 plt.title('Scatter plot of imaginary values from refractive indices')
@@ -99,7 +98,6 @@ plt.plot(test, r_values)
 plt.xlabel('Phase due to width of layer (*pi)')
 plt.ylabel('Reflection coefficient ')
 plt.title('Reflectivity spectrum as a function of phase')
-plt.legend(loc='best')
 plt.grid()
 plt.show()
 
@@ -163,7 +161,7 @@ ax = plt.axes(projection='3d')
 ax.set_xlabel("incidence angle (rad)")
 ax.set_ylabel("thickness (nm)")
 ax.set_zlabel("reflection")
-ax.set_title("Reflection spectrum for MgF2 layer on top of BK7 substrate")
+ax.set_title("Reflection spectrum for MgF2 layer on top of glass substrate")
 
 ax.plot(xcoord2, ycoord2, zcoord2, color='k', zorder=1, label="analytical formula")
 ax.scatter(xcoord, ycoord, zcoord, c=zcoord, cmap=cm.viridis, zorder=2, alpha=0.05)
@@ -258,7 +256,6 @@ ax.set_title("Reflection variation for Gold layer on top of glass substrate for 
 
 ax.scatter(xcoord2, ycoord2, r_vals, c=r_vals, cmap=cm.viridis, zorder=2, alpha=0.05)
 
-ax.legend()
 
 # Plotting the transmssion spectrum as a function of wavelength and thickness
 fig2 = plt.figure()
@@ -271,7 +268,7 @@ ax2.set_title("Transmission spectrum for Gold layer on top of glass substrate fo
 
 ax2.scatter(xcoord2, ycoord2, t_vals, c=t_vals, cmap=cm.viridis, zorder=2, alpha=0.05)
 
-ax2.legend()
+
 
 
 
