@@ -484,7 +484,7 @@ for dcav in dcavs:
         d_stack1.extend(d_stack)
         rstack, tstack = tmm.TMM(i, 0, "s", n_stack1, d_stack1, squared = False)
 
-        rphase = np.angle(rstack)
+        rphase = np.angle(tstack)
         phasesr.append(rphase)
 
         rstack = np.abs(rstack)**2
@@ -510,14 +510,14 @@ line = ax.plot(var_wavelength, animdata[0], color='k', lw=2, label = "Reflectanc
 line2 = ax.plot(var_wavelength, animdatat[0], color = 'r', lw = 2, label = "Transmittance" )[0]
 ax.set_ylabel("Transmission and Reflection ratio")
 ax.set_xlabel("Incident wavelength (nm)")
-
+plt.legend()
 ax2 = ax.twinx()
 
 ax2.set_ylabel("Phase response")
 line3 = ax2.plot(var_wavelength, animphase[0], color = 'c', lw = 2, label = "Phase Response")[0]
 ax2.yaxis.set_major_formatter(tck.FormatStrFormatter('%g $\pi$'))
 ax2.yaxis.set_major_locator(tck.MultipleLocator(base=1.0))
-plt.legend()
+plt.legend(loc = "lower right")
 def animate(i):
     line.set_ydata(animdata[i])
     line2.set_ydata(animdatat[i])
