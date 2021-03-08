@@ -443,6 +443,7 @@ plt.figure()
 plt.plot(var_wavelength, t_output)
 plt.show()
 plt.grid()
+plt.title("Two Cavity Band Pass Filter ")
 plt.xlabel('Wavelength (nm)')
 plt.ylabel('Transmission')
 
